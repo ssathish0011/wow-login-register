@@ -1,7 +1,7 @@
 import axios from "axios";
 import { router } from "expo-router";
 
-import { API_URL } from "../config";
+import { API_URL } from "../config/config";
 import { clearSession, getToken } from "../utils/auth";
 
 const API = axios.create({

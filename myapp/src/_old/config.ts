@@ -5,3 +5,4 @@ if (!rawUrl) {
 }
 
 export const API_URL: string = rawUrl.replace(/\/+$/, "");
+
