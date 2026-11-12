@@ -9,26 +9,30 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import API from "../../../api/api";
-import { getErrorMessage, isValidEmail, saveSession } from "../../../utils/auth";
+import { getErrorMessage, saveSession } from "../../../utils/auth";
+import { useAppDispatch } from "@/store/hooks";
+import { setCredentials } from "../slices/authSlice";
 
-export default function LoginForm() {
+interface LoginFormProps {
+  redirect?: string;
+}
+
+export default function LoginForm({ redirect }: LoginFormProps) {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const dispatch = useAppDispatch();
+
+  // "identifier" can be email OR phone (backend accepts both)
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleLogin = async () => {
-    const trimmedEmail = email.trim();
+    const trimmedIdentifier = identifier.trim();
     const trimmedPassword = password.trim();
 
-    if (!trimmedEmail || !trimmedPassword) {
-      setErrorMessage("Please enter both email and password.");
-      return;
-    }
-
-    if (!isValidEmail(trimmedEmail)) {
-      setErrorMessage("Please enter a valid email address.");
+    if (!trimmedIdentifier || !trimmedPassword) {
+      setErrorMessage("Please enter your email/phone and password.");
       return;
     }
 
@@ -40,17 +44,42 @@ export default function LoginForm() {
     setErrorMessage("");
     setLoading(true);
 
+    const cleanIdentifier = trimmedIdentifier.includes("@")
+      ? trimmedIdentifier.toLowerCase()
+      : trimmedIdentifier.replace(/\D/g, "");
+
     try {
-      const response = await API.post("/users/login", {
-        email: trimmedEmail,
+      // Backend expects: { identifier, password }
+      // Route: POST /api/auth/login
+      const response = await API.post("/auth/login", {
+        identifier: cleanIdentifier,
         password: trimmedPassword,
       });
 
       const { token, user } = response.data;
-      const userData = user || { name: "User", email: trimmedEmail };
 
+      const userData = {
+        id: user?.id || user?._id,
+        name: user?.name || "User",
+        email: user?.email || (trimmedIdentifier.includes("@") ? trimmedIdentifier.toLowerCase() : ""),
+        phone: user?.phone || (!trimmedIdentifier.includes("@") ? cleanIdentifier : undefined),
+        role: user?.role || "user",
+      };
+
+      dispatch(setCredentials({ token, user: userData }));
       await saveSession(token, userData);
-      router.replace("/home");
+
+      // Navigate based on role
+      const role = (userData.role || "").toLowerCase();
+      if (redirect) {
+        router.replace(redirect as any);
+      } else if (role === "admin") {
+        router.replace("/admin/dashboard");
+      } else if (role === "owner" || role === "business_owner") {
+        router.replace("/owner/dashboard");
+      } else {
+        router.replace("/home");
+      }
     } catch (error: any) {
       const message = getErrorMessage(error);
       setErrorMessage(message);
@@ -62,7 +91,7 @@ export default function LoginForm() {
   return (
     <View style={styles.formCard}>
       <Text style={styles.title}>Welcome Back</Text>
-      <Text style={styles.subtitle}>Sign in to your account</Text>
+      <Text style={styles.subtitle}>Sign in to your WOW account</Text>
 
       {errorMessage ? (
         <View style={styles.errorBox}>
@@ -71,14 +100,14 @@ export default function LoginForm() {
       ) : null}
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Email Address</Text>
+        <Text style={styles.label}>Email or Phone Number</Text>
         <TextInput
           style={[styles.input, loading && styles.disabledInput]}
-          placeholder="Enter your email"
+          placeholder="Enter your email or phone"
           placeholderTextColor="#9ca3af"
-          value={email}
+          value={identifier}
           onChangeText={(text) => {
-            setEmail(text);
+            setIdentifier(text);
             if (errorMessage) setErrorMessage("");
           }}
           keyboardType="email-address"
@@ -122,7 +151,7 @@ export default function LoginForm() {
 
       <View style={styles.footerRow}>
         <Text style={styles.footerText}>Don't have an account? </Text>
-        <Link href="/register" asChild>
+        <Link href="/signup" asChild>
           <Pressable disabled={loading}>
             <Text style={styles.linkText}>Sign Up</Text>
           </Pressable>

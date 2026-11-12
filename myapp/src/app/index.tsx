@@ -2,97 +2,117 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
+  Platform,
   Pressable,
+  StatusBar as RNStatusBar,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getToken, getUser } from "../utils/auth";
+import { useAppDispatch } from "@/store/hooks";
+import { setCredentials } from "@/features/auth/slices/authSlice";
 
-import { getToken } from "../utils/auth";
-
-// Minimum time the loading screen stays visible (milliseconds)
-const MIN_LOADING_MS = 1800;
+const MIN_LOADING_MS = 1200;
 
 const COLORS = {
-  blush: "#FFE4EE", // light pink background
-  magenta: "#D1006C", // main brand pink
+  blush: "#FFE4EE",
+  magenta: "#D1006C",
   magentaDark: "#A80056",
-  plum: "#8F1458", // text color
+  plum: "#8F1458",
   white: "#FFFFFF",
   ink: "#1A1A1A",
 };
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-function LoadingScreen() {
-  return (
-    <View style={styles.loadingContainer}>
-      <StatusBar style="dark" />
-      <ActivityIndicator size="large" color={COLORS.magenta} />
-      <Text style={styles.loadingText}>Loading...</Text>
-    </View>
-  );
-}
+const wait = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 export default function Index() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const topInset =
+    insets.top > 0
+      ? insets.top
+      : Platform.OS === "android"
+      ? RNStatusBar.currentHeight || 0
+      : 0;
+
+  // Three states: "checking" | "authenticated" | "guest"
+  const [state, setState] = useState<"checking" | "authenticated" | "guest">(
+    "checking"
+  );
   const fade = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     let isMounted = true;
 
-    const checkExistingSession = async () => {
+    async function checkSession() {
       try {
         const [token] = await Promise.all([getToken(), wait(MIN_LOADING_MS)]);
-        if (token && isMounted) {
-          router.replace("/dashboard");
+        if (!isMounted) return;
+
+        if (token) {
+          const user = await getUser();
+          if (user && isMounted) {
+            dispatch(setCredentials({ token, user }));
+          }
+          const role = user?.role?.toLowerCase();
+          if (role === "admin") {
+            router.replace("/admin/dashboard");
+          } else if (role === "owner" || role === "business_owner") {
+            router.replace("/owner/dashboard");
+          } else {
+            router.replace("/home");
+          }
           return;
         }
       } catch {
-        // If the token check fails, show the home page
+        // fall through to show landing page
       }
+
       if (isMounted) {
-        setCheckingAuth(false);
+        setState("guest");
       }
-    };
+    }
 
-    checkExistingSession();
-
+    checkSession();
     return () => {
       isMounted = false;
     };
-  }, [router]);
+  }, [router, dispatch]);
 
+  // Fade in landing page once auth check completes
   useEffect(() => {
-    if (!checkingAuth) {
+    if (state === "guest") {
       Animated.timing(fade, {
         toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
+        duration: 500,
+        useNativeDriver: Platform.OS !== "web",
       }).start();
     }
-  }, [checkingAuth, fade]);
+  }, [state, fade]);
 
-  if (checkingAuth) {
-    return <LoadingScreen />;
+  if (state === "checking") {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.magenta} />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
   }
 
   return (
     <Animated.View style={[styles.container, { opacity: fade }]}>
-      <StatusBar style="dark" />
-
       {/* Top area: title and tagline */}
-      <View style={[styles.top, { paddingTop: insets.top + 24 }]}>
+      <View style={[styles.top, { paddingTop: topInset + 24 }]}>
         <Text style={styles.title}>WOW</Text>
-        <Text style={styles.subtitle}>Welcome to women of wisdom</Text>
+        <Text style={styles.subtitle}>Women of Wisdom</Text>
         <Text style={styles.tagline}>
-          Online education has never been this easy. Get your Account now and
-          let's get started already.
+          Discover and support women-led businesses in your city.
+          {"\n"}Join thousands of women entrepreneurs today.
         </Text>
       </View>
 
@@ -104,6 +124,7 @@ export default function Index() {
         ]}
       >
         <Pressable
+          accessibilityRole="button"
           style={({ pressed }) => [
             styles.signInButton,
             pressed && styles.signInPressed,
@@ -120,13 +141,22 @@ export default function Index() {
         </View>
 
         <Pressable
+          accessibilityRole="button"
           style={({ pressed }) => [
             styles.signUpButton,
             pressed && styles.signUpPressed,
           ]}
-          onPress={() => router.push("/register")}
+          onPress={() => router.push("/signup")}
         >
-          <Text style={styles.signUpText}>SIGN UP</Text>
+          <Text style={styles.signUpText}>CREATE ACCOUNT</Text>
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          style={styles.skipButton}
+          onPress={() => router.replace("/home")}
+        >
+          <Text style={styles.skipText}>Browse as Guest →</Text>
         </Pressable>
       </View>
     </Animated.View>
@@ -134,7 +164,6 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  // Loading screen
   loadingContainer: {
     flex: 1,
     backgroundColor: COLORS.blush,
@@ -147,8 +176,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     color: COLORS.plum,
   },
-
-  // Home page
   container: {
     flex: 1,
     backgroundColor: COLORS.blush,
@@ -173,17 +200,17 @@ const styles = StyleSheet.create({
   },
   tagline: {
     marginTop: 28,
-    fontSize: 16,
+    fontSize: 15,
     lineHeight: 24,
-    fontWeight: "700",
+    fontWeight: "500",
     color: COLORS.plum,
     textAlign: "center",
   },
   actionPanel: {
     backgroundColor: COLORS.magenta,
-    borderTopLeftRadius: 72,
-    borderTopRightRadius: 72,
-    paddingTop: 34,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    paddingTop: 32,
     paddingHorizontal: 28,
   },
   signInButton: {
@@ -197,7 +224,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.blush,
   },
   signInText: {
-    color: COLORS.ink,
+    color: COLORS.magenta,
     fontSize: 15,
     fontWeight: "800",
     letterSpacing: 0.5,
@@ -210,7 +237,7 @@ const styles = StyleSheet.create({
   orLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "rgba(255,255,255,0.7)",
+    backgroundColor: "rgba(255,255,255,0.4)",
   },
   orText: {
     color: COLORS.white,
@@ -234,5 +261,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "800",
     letterSpacing: 0.5,
+  },
+  skipButton: {
+    alignItems: "center",
+    marginTop: 18,
+    paddingVertical: 6,
+  },
+  skipText: {
+    color: "rgba(255,255,255,0.75)",
+    fontSize: 13,
+    fontWeight: "600",
   },
 });

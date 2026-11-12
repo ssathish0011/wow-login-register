@@ -16,12 +16,13 @@
     },
     "simulator": {
       "ios": {
-        "simulator": true
+        "simulator": true,
       }
     },
     "production": {
       "distribution": "store",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "icon": "./assets/icon.png"
     }
   },
   "submit": {

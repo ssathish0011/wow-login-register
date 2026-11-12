@@ -2,9 +2,12 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../../store/store";
 import { storage } from "../../../services/storage/storageHelper";
 
-type User = {
+export type User = {
   name: string;
   email: string;
+  id?: string;
+  phone?: string;
+  role?: "user" | "owner" | "admin" | string;
 };
 
 interface AuthState {

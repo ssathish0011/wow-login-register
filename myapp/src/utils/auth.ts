@@ -40,6 +40,8 @@ export interface AuthUser {
   name: string;
   email: string;
   id?: string;
+  phone?: string;
+  role?: "user" | "owner" | "admin" | string;
 }
 
 export const saveSession = async (

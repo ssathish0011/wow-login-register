@@ -1,6 +1,10 @@
-import React from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS } from "@/common/constants/colors";
 import { BusinessItem } from "../types/home.types";
+import BusinessCard from "./BusinessCard";
 
 interface FeaturedBusinessesProps {
   businesses: BusinessItem[];
@@ -8,6 +12,8 @@ interface FeaturedBusinessesProps {
   onToggleSave: (id: string) => void;
   onBusinessPress?: (business: BusinessItem) => void;
   onViewAllPress?: () => void;
+  isFiltering?: boolean; // true when a search or category filter is active
+  onClearFilters?: () => void;
 }
 
 export default function FeaturedBusinesses({
@@ -16,64 +22,87 @@ export default function FeaturedBusinesses({
   onToggleSave,
   onBusinessPress,
   onViewAllPress,
+  isFiltering = false,
+  onClearFilters,
 }: FeaturedBusinessesProps) {
+  const savedSet = useMemo(() => new Set(savedIds), [savedIds]);
+
   return (
     <View style={styles.container}>
+      {/* Section Heading */}
       <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>Featured Businesses</Text>
-        <Pressable onPress={onViewAllPress}>
+        <View style={styles.headingContent}>
+          <View style={styles.titleRow}>
+            <View style={styles.titleIndicator} />
+            <Text style={styles.sectionTitle}>Featured Businesses</Text>
+          </View>
+
+          {/* <Text style={styles.sectionSubtitle}>
+            Explore top-rated businesses around you
+          </Text> */}
+        </View>
+
+        <Pressable
+          onPress={onViewAllPress}
+          style={({ pressed }) => [
+            styles.viewAllButton,
+            pressed && styles.viewAllPressed,
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="View all businesses"
+        >
           <Text style={styles.viewAllText}>View All</Text>
+          <Ionicons name="chevron-forward" size={14} color={COLORS.brand} />
         </Pressable>
       </View>
 
-      <View style={styles.grid}>
-        {businesses.map((item) => {
-          const isSaved = savedIds.includes(item.id);
-          return (
+      {/* Business Grid */}
+      {businesses.length > 0 ? (
+        <View style={styles.grid}>
+          {businesses.map((item) => (
+            <View key={item.id} style={styles.cardWrapper}>
+              <BusinessCard
+                business={item}
+                isSaved={savedSet.has(item.id)}
+                onToggleSave={onToggleSave}
+                onPress={() => onBusinessPress?.(item)}
+              />
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Ionicons
+            name={isFiltering ? "search-outline" : "storefront-outline"}
+            size={34}
+            color={COLORS.brand}
+          />
+
+          <Text style={styles.emptyTitle}>
+            {isFiltering ? "No businesses found" : "No Featured Businesses"}
+          </Text>
+
+          <Text style={styles.emptySubtitle}>
+            {isFiltering
+              ? "Try a different category or search term."
+              : "New businesses will appear here soon."}
+          </Text>
+
+          {isFiltering && !!onClearFilters && (
             <Pressable
-              key={item.id}
-              style={styles.card}
-              onPress={() => onBusinessPress && onBusinessPress(item)}
+              onPress={onClearFilters}
+              style={({ pressed }) => [
+                styles.clearButton,
+                pressed && styles.viewAllPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Clear filters"
             >
-              <View style={styles.imageContainer}>
-                <Image
-                  source={{ uri: item.imageUrl }}
-                  style={styles.cardImage}
-                  resizeMode="cover"
-                />
-                <Pressable
-                  style={styles.saveBadge}
-                  onPress={() => onToggleSave(item.id)}
-                >
-                  <Text style={styles.heartText}>{isSaved ? "💖" : "🤍"}</Text>
-                </Pressable>
-              </View>
-
-              <View style={styles.infoContainer}>
-                <Text style={styles.nameText} numberOfLines={1}>
-                  {item.name}
-                </Text>
-                <Text style={styles.categoryText} numberOfLines={1}>
-                  {item.category}
-                </Text>
-
-                <View style={styles.ratingRow}>
-                  <Text style={styles.ratingText}>
-                    ⭐ {item.rating}{" "}
-                    <Text style={styles.reviewsText}>({item.reviewsCount})</Text>
-                  </Text>
-                </View>
-
-                <View style={styles.locationRow}>
-                  <Text style={styles.locationText} numberOfLines={1}>
-                    📍 {item.location}
-                  </Text>
-                </View>
-              </View>
+              <Text style={styles.clearButtonText}>Clear filters</Text>
             </Pressable>
-          );
-        })}
-      </View>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -81,103 +110,114 @@ export default function FeaturedBusinesses({
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    marginVertical: 12,
+    marginTop: 18,
+    marginBottom: 20,
   },
+
   headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 16,
   },
+
+  headingContent: {
+    flex: 1,
+  },
+
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  titleIndicator: {
+    width: 4,
+    height: 19,
+    borderRadius: 5,
+    backgroundColor: COLORS.brand,
+    marginRight: 8,
+  },
+
   sectionTitle: {
-    fontSize: 17,
-    fontWeight: "700",
-    color: "#111827",
+    fontSize: 18,
+    fontWeight: "800",
+    color: COLORS.ink,
+    letterSpacing: -0.4,
   },
+
+  sectionSubtitle: {
+    fontSize: 11,
+    color: "#888888",
+    marginTop: 5,
+    marginLeft: 12,
+    fontWeight: "500",
+  },
+
+  viewAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingLeft: 8,
+    gap: 2,
+  },
+
   viewAllText: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#D1006C",
+    fontSize: 12,
+    fontWeight: "700",
+    color: COLORS.brand,
   },
+
+  viewAllPressed: {
+    opacity: 0.6,
+  },
+
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    rowGap: 16,
+    rowGap: 14,
   },
-  card: {
-    width: "48%",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    borderWidth: 1.2,
-    borderColor: "#F3F4F6",
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+
+  cardWrapper: {
+    width: "48.5%",
   },
-  imageContainer: {
-    width: "100%",
-    height: 120,
-    position: "relative",
-    backgroundColor: "#F3F4F6",
-  },
-  cardImage: {
-    width: "100%",
-    height: "100%",
-  },
-  saveBadge: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "#FFFFFF",
+
+  emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
+    paddingVertical: 35,
+    paddingHorizontal: 15,
+    backgroundColor: "#FFF7FA",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#F5E2EA",
   },
-  heartText: {
-    fontSize: 13,
-  },
-  infoContainer: {
-    padding: 11,
-  },
-  nameText: {
+
+  emptyTitle: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#111827",
+    color: COLORS.ink,
+    marginTop: 10,
   },
-  categoryText: {
+
+  emptySubtitle: {
     fontSize: 12,
-    color: "#6B7280",
-    marginTop: 2,
+    color: "#888888",
+    marginTop: 5,
+    textAlign: "center",
   },
-  ratingRow: {
-    marginTop: 6,
+
+  clearButton: {
+    marginTop: 14,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    borderRadius: 20,
+    backgroundColor: COLORS.brand,
   },
-  ratingText: {
+
+  clearButtonText: {
     fontSize: 12,
-    fontWeight: "600",
-    color: "#1F2937",
-  },
-  reviewsText: {
-    color: "#9CA3AF",
-    fontWeight: "400",
-  },
-  locationRow: {
-    marginTop: 4,
-  },
-  locationText: {
-    fontSize: 11.5,
-    color: "#6B7280",
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });
-
