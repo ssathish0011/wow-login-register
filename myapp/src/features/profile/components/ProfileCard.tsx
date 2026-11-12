@@ -301,7 +301,7 @@ export default function ProfileCard() {
         onPress: async () => {
           await clearSession();
           dispatch(clearCredentials());
-          router.replace("/login");
+          router.replace("/home");
         },
       },
     ]);
@@ -729,7 +729,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: "#F3F4F6",
     alignItems: "center",
     justifyContent: "center",
   },

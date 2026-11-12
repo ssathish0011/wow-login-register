@@ -1,15 +1,22 @@
+// app/index.tsx
+// WOW (Women of Wisdom) landing page.
+// Auth check + redirects are unchanged; only the visual design is new.
+
 import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
+  Easing,
   Platform,
   Pressable,
+  ScrollView,
   StatusBar as RNStatusBar,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getToken, getUser } from "../utils/auth";
 import { useAppDispatch } from "@/store/hooks";
@@ -18,16 +25,48 @@ import { setCredentials } from "@/features/auth/slices/authSlice";
 const MIN_LOADING_MS = 1200;
 
 const COLORS = {
-  blush: "#FFE4EE",
   magenta: "#D1006C",
-  magentaDark: "#A80056",
-  plum: "#8F1458",
+  magentaDeep: "#A80056",
+  magentaGlow: "#E3278A",
+  plum: "#3B0A2B",
+  blush: "#FFE4EE",
   white: "#FFFFFF",
-  ink: "#1A1A1A",
+  amber: "#B26A00",
+  amberSoft: "#FFF1D6",
+  green: "#14804A",
+  greenSoft: "#E6F5EC",
+  muted: "#7A6A74",
 };
+
+type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
 const wait = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
+
+/* ---------- small building blocks ---------- */
+
+function Tile({
+  icon,
+  label,
+  fg,
+  bg,
+}: {
+  icon: IoniconName;
+  label: string;
+  fg: string;
+  bg: string;
+}) {
+  return (
+    <View style={styles.tile}>
+      <View style={[styles.tileIcon, { backgroundColor: bg }]}>
+        <Ionicons name={icon} size={20} color={fg} />
+      </View>
+      <Text style={styles.tileLabel} numberOfLines={1}>
+        {label}
+      </Text>
+    </View>
+  );
+}
 
 export default function Index() {
   const router = useRouter();
@@ -37,14 +76,17 @@ export default function Index() {
     insets.top > 0
       ? insets.top
       : Platform.OS === "android"
-      ? RNStatusBar.currentHeight || 0
-      : 0;
+        ? RNStatusBar.currentHeight || 0
+        : 0;
 
   // Three states: "checking" | "authenticated" | "guest"
   const [state, setState] = useState<"checking" | "authenticated" | "guest">(
     "checking"
   );
-  const fade = useRef(new Animated.Value(0)).current;
+
+  // One entrance moment: hero rises in, then the sheet slides up.
+  const hero = useRef(new Animated.Value(0)).current;
+  const sheet = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     let isMounted = true;
@@ -84,192 +126,336 @@ export default function Index() {
     };
   }, [router, dispatch]);
 
-  // Fade in landing page once auth check completes
   useEffect(() => {
     if (state === "guest") {
-      Animated.timing(fade, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: Platform.OS !== "web",
-      }).start();
+      const native = Platform.OS !== "web";
+      Animated.sequence([
+        Animated.timing(hero, {
+          toValue: 1,
+          duration: 520,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: native,
+        }),
+        Animated.timing(sheet, {
+          toValue: 1,
+          duration: 420,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: native,
+        }),
+      ]).start();
     }
-  }, [state, fade]);
+  }, [state, hero, sheet]);
 
+  /* ---------- loading ---------- */
   if (state === "checking") {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.magenta} />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <RNStatusBar barStyle="light-content" backgroundColor={COLORS.magenta} />
+        <Text style={styles.loadingMark}>WOW</Text>
+        <ActivityIndicator
+          size="small"
+          color={COLORS.white}
+          style={{ marginTop: 18 }}
+        />
       </View>
     );
   }
 
+  const heroStyle = {
+    opacity: hero,
+    transform: [
+      {
+        translateY: hero.interpolate({
+          inputRange: [0, 1],
+          outputRange: [18, 0],
+        }),
+      },
+    ],
+  };
+  const sheetStyle = {
+    opacity: sheet,
+    transform: [
+      {
+        translateY: sheet.interpolate({
+          inputRange: [0, 1],
+          outputRange: [40, 0],
+        }),
+      },
+    ],
+  };
+
   return (
-    <Animated.View style={[styles.container, { opacity: fade }]}>
-      {/* Top area: title and tagline */}
-      <View style={[styles.top, { paddingTop: topInset + 24 }]}>
-        <Text style={styles.title}>WOW</Text>
-        <Text style={styles.subtitle}>Women of Wisdom</Text>
-        <Text style={styles.tagline}>
-          Discover and support women-led businesses in your city.
-          {"\n"}Join thousands of women entrepreneurs today.
-        </Text>
+    <View style={styles.container}>
+      <RNStatusBar barStyle="light-content" backgroundColor={COLORS.magenta} />
+
+      {/* HERO */}
+      <View style={styles.heroWrap}>
+        <View style={styles.ringLarge} />
+        <View style={styles.ringSmall} />
+
+        <ScrollView
+          contentContainerStyle={[
+            styles.heroContent,
+            { paddingTop: topInset + 16 },
+          ]}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <Animated.View style={heroStyle}>
+            {/* brand row */}
+            <View style={styles.brandRow}>
+              <Text style={styles.brandMark}>WOW</Text>
+              <View style={styles.brandDivider} />
+              <Text style={styles.brandName}>Women of Wisdom</Text>
+            </View>
+
+            {/* headline */}
+            <Text style={styles.headline}>
+              Where women-led businesses get found.
+            </Text>
+            <Text style={styles.subline}>
+              Discover local shops, services and makers run by women, and list
+              your own business to reach more customers.
+            </Text>
+
+            {/* category tiles */}
+            <View style={styles.tileGrid}>
+              <View style={styles.tileCol}>
+                <Tile
+                  icon="shirt-outline"
+                  label="Fashion"
+                  fg={COLORS.magenta}
+                  bg={COLORS.blush}
+                />
+                <Tile
+                  icon="flower-outline"
+                  label="Beauty"
+                  fg={COLORS.green}
+                  bg={COLORS.greenSoft}
+                />
+              </View>
+              <View style={[styles.tileCol, styles.tileColOffset]}>
+                <Tile
+                  icon="restaurant-outline"
+                  label="Food"
+                  fg={COLORS.amber}
+                  bg={COLORS.amberSoft}
+                />
+                <Tile
+                  icon="color-palette-outline"
+                  label="Handmade"
+                  fg={COLORS.magenta}
+                  bg={COLORS.blush}
+                />
+              </View>
+            </View>
+          </Animated.View>
+        </ScrollView>
       </View>
 
-      {/* Bottom area: magenta panel with buttons */}
-      <View
+      {/* ACTION SHEET */}
+      <Animated.View
         style={[
-          styles.actionPanel,
-          { paddingBottom: Math.max(insets.bottom, 20) + 20 },
+          styles.sheet,
+          { paddingBottom: Math.max(insets.bottom, 16) + 16 },
+          sheetStyle,
         ]}
       >
         <Pressable
           accessibilityRole="button"
           style={({ pressed }) => [
-            styles.signInButton,
-            pressed && styles.signInPressed,
+            styles.primaryBtn,
+            pressed && styles.primaryBtnPressed,
           ]}
-          onPress={() => router.push("/login")}
+          onPress={() => router.push("/signup")}
         >
-          <Text style={styles.signInText}>SIGN IN</Text>
+          <Text style={styles.primaryText}>Create account</Text>
         </Pressable>
-
-        <View style={styles.orRow}>
-          <View style={styles.orLine} />
-          <Text style={styles.orText}>OR</Text>
-          <View style={styles.orLine} />
-        </View>
 
         <Pressable
           accessibilityRole="button"
           style={({ pressed }) => [
-            styles.signUpButton,
-            pressed && styles.signUpPressed,
+            styles.secondaryBtn,
+            pressed && styles.secondaryBtnPressed,
           ]}
-          onPress={() => router.push("/signup")}
+          onPress={() => router.push("/login")}
         >
-          <Text style={styles.signUpText}>CREATE ACCOUNT</Text>
+          <Text style={styles.secondaryText}>I already have an account</Text>
         </Pressable>
 
         <Pressable
           accessibilityRole="button"
-          style={styles.skipButton}
+          style={styles.guestBtn}
           onPress={() => router.replace("/home")}
+          hitSlop={8}
         >
-          <Text style={styles.skipText}>Browse as Guest →</Text>
+          <Text style={styles.guestText}>Browse as guest</Text>
         </Pressable>
-      </View>
-    </Animated.View>
+      </Animated.View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  /* loading */
   loadingContainer: {
     flex: 1,
-    backgroundColor: COLORS.blush,
+    backgroundColor: COLORS.magenta,
     justifyContent: "center",
     alignItems: "center",
   },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 15,
-    letterSpacing: 1,
-    color: COLORS.plum,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.blush,
-  },
-  top: {
-    flex: 1,
-    paddingHorizontal: 28,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 72,
+  loadingMark: {
+    fontSize: 56,
     fontWeight: "900",
     letterSpacing: 4,
-    color: COLORS.magenta,
+    color: COLORS.white,
   },
-  subtitle: {
-    marginTop: 4,
-    fontSize: 17,
-    fontWeight: "600",
-    color: COLORS.plum,
-  },
-  tagline: {
-    marginTop: 28,
-    fontSize: 15,
-    lineHeight: 24,
-    fontWeight: "500",
-    color: COLORS.plum,
-    textAlign: "center",
-  },
-  actionPanel: {
+
+  container: { flex: 1, backgroundColor: COLORS.magenta },
+
+  /* hero */
+  heroWrap: {
+    flex: 1,
     backgroundColor: COLORS.magenta,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    paddingTop: 32,
-    paddingHorizontal: 28,
+    overflow: "hidden",
   },
-  signInButton: {
+  ringLarge: {
+    position: "absolute",
+    width: 360,
+    height: 360,
+    borderRadius: 180,
+    right: -150,
+    top: -90,
+    backgroundColor: COLORS.magentaGlow,
+    opacity: 0.45,
+  },
+  ringSmall: {
+    position: "absolute",
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    left: -60,
+    bottom: 30,
+    backgroundColor: COLORS.magentaDeep,
+    opacity: 0.5,
+  },
+  heroContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingBottom: 36,
+    justifyContent: "center",
+  },
+
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 22,
+  },
+  brandMark: {
+    fontSize: 26,
+    fontWeight: "900",
+    letterSpacing: 2,
+    color: COLORS.white,
+  },
+  brandDivider: {
+    width: 1,
+    height: 18,
+    backgroundColor: "rgba(255,255,255,0.45)",
+    marginHorizontal: 12,
+  },
+  brandName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "rgba(255,255,255,0.88)",
+  },
+
+  headline: {
+    fontSize: 34,
+    lineHeight: 40,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+    color: COLORS.white,
+  },
+  subline: {
+    marginTop: 12,
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: "500",
+    color: "rgba(255,255,255,0.85)",
+    maxWidth: 340,
+  },
+
+  /* tiles */
+  tileGrid: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 26,
+  },
+  tileCol: { flex: 1, gap: 12 },
+  tileColOffset: { marginTop: 26 },
+  tile: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
     backgroundColor: COLORS.white,
-    height: 54,
-    borderRadius: 27,
+    borderRadius: 18,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    shadowColor: COLORS.plum,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  tileIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: "center",
     justifyContent: "center",
   },
-  signInPressed: {
-    backgroundColor: COLORS.blush,
-  },
-  signInText: {
-    color: COLORS.magenta,
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  orRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 14,
-  },
-  orLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.4)",
-  },
-  orText: {
-    color: COLORS.white,
-    fontSize: 12,
+  tileLabel: {
+    flexShrink: 1,
+    fontSize: 14,
     fontWeight: "700",
-    marginHorizontal: 12,
+    color: COLORS.plum,
   },
-  signUpButton: {
+
+  /* sheet */
+  sheet: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingTop: 26,
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  primaryBtn: {
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: COLORS.magenta,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: COLORS.magenta,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  primaryBtnPressed: { backgroundColor: COLORS.magentaDeep },
+  primaryText: { color: COLORS.white, fontSize: 16, fontWeight: "800" },
+
+  secondaryBtn: {
     height: 54,
     borderRadius: 27,
     borderWidth: 1.5,
-    borderColor: COLORS.white,
+    borderColor: COLORS.magenta,
     alignItems: "center",
     justifyContent: "center",
   },
-  signUpPressed: {
-    backgroundColor: COLORS.magentaDark,
-  },
-  signUpText: {
-    color: COLORS.white,
-    fontSize: 15,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  skipButton: {
-    alignItems: "center",
-    marginTop: 18,
-    paddingVertical: 6,
-  },
-  skipText: {
-    color: "rgba(255,255,255,0.75)",
-    fontSize: 13,
-    fontWeight: "600",
-  },
+  secondaryBtnPressed: { backgroundColor: COLORS.blush },
+  secondaryText: { color: COLORS.magenta, fontSize: 15, fontWeight: "700" },
+
+  guestBtn: { alignItems: "center", paddingVertical: 6 },
+  guestText: { color: COLORS.muted, fontSize: 14, fontWeight: "600" },
 });

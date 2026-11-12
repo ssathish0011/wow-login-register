@@ -1,18 +1,165 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
+  Easing,
+  KeyboardTypeOptions,
+  Platform,
   Pressable,
-  ScrollView,
+  ReturnKeyTypeOptions,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import API from "../../../api/api";
 import { getErrorMessage, saveSession } from "../../../utils/auth";
 import { useAppDispatch } from "@/store/hooks";
 import { setCredentials } from "../slices/authSlice";
+
+// Justdial-style palette (same as LoginForm)
+const JD = {
+  blue: "#0076D7",
+  blueDark: "#005FB0",
+  blueSoft: "#E6F2FC",
+  green: "#00A650",
+  text: "#1F2937",
+  muted: "#6B7280",
+  border: "#D1D5DB",
+  red: "#E53935",
+  redSoft: "#FDECEA",
+  white: "#FFFFFF",
+};
+
+type FieldKey = "name" | "phone" | "email" | "password";
+
+/* ------------------------------------------------------------------ */
+/* Floating-label input                                                */
+/* The label sits inside the box like a placeholder. When the field    */
+/* is focused or has text, it shrinks and moves to the top edge.       */
+/* ------------------------------------------------------------------ */
+
+interface FloatingInputProps {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  focused: boolean;
+  onFocus: () => void;
+  onBlur: () => void;
+  disabled?: boolean;
+  secureTextEntry?: boolean;
+  keyboardType?: KeyboardTypeOptions;
+  autoCapitalize?: "none" | "words" | "sentences" | "characters";
+  maxLength?: number;
+  returnKeyType?: ReturnKeyTypeOptions;
+  onSubmitEditing?: () => void;
+  prefix?: string;
+  right?: React.ReactNode;
+}
+
+function FloatingInput({
+  label,
+  value,
+  onChangeText,
+  focused,
+  onFocus,
+  onBlur,
+  disabled,
+  secureTextEntry,
+  keyboardType = "default",
+  autoCapitalize = "none",
+  maxLength,
+  returnKeyType,
+  onSubmitEditing,
+  prefix,
+  right,
+}: FloatingInputProps) {
+  const inputRef = useRef<TextInput>(null);
+  const floated = focused || value.length > 0 || !!prefix;
+  const anim = useRef(new Animated.Value(floated ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: floated ? 1 : 0,
+      duration: 160,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: false, // animating top / fontSize
+    }).start();
+  }, [floated, anim]);
+
+  // Rest: vertically centred inside the box (box inner height = 53).
+  // Floated: centred on the top border line.
+  const labelTop = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [17, -11],
+  });
+  const labelSize = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [15, 12],
+  });
+  const fieldBg = disabled ? "#F3F4F6" : JD.white;
+
+  return (
+    <Pressable
+      onPress={() => inputRef.current?.focus()}
+      style={[
+        styles.field,
+        focused && styles.fieldFocused,
+        disabled && styles.fieldDisabled,
+      ]}
+    >
+      <Animated.Text
+        pointerEvents="none"
+        numberOfLines={1}
+        style={[
+          styles.floatLabel,
+          {
+            top: labelTop,
+            fontSize: labelSize,
+            color: focused ? JD.blue : JD.muted,
+            fontWeight: floated ? "600" : "400",
+            // background "cuts" the border behind the floated label
+            backgroundColor: floated ? fieldBg : "transparent",
+          },
+        ]}
+      >
+        {label}
+      </Animated.Text>
+
+      <View style={styles.fieldRow}>
+        {!!prefix && (
+          <View style={styles.prefixBox}>
+            <Text style={styles.prefixText}>{prefix}</Text>
+          </View>
+        )}
+        <TextInput
+          ref={inputRef}
+          style={styles.fieldInput}
+          value={value}
+          onChangeText={onChangeText}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          editable={!disabled}
+          secureTextEntry={secureTextEntry}
+          keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize}
+          maxLength={maxLength}
+          autoCorrect={false}
+          returnKeyType={returnKeyType}
+          onSubmitEditing={onSubmitEditing}
+          selectionColor={JD.blue}
+        />
+        {right}
+      </View>
+    </Pressable>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Register form                                                       */
+/* ------------------------------------------------------------------ */
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -22,12 +169,17 @@ export default function RegisterForm() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [focused, setFocused] = useState<FieldKey | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const clearError = () => {
     if (errorMessage) setErrorMessage("");
   };
+
+  const phoneValid = /^[6-9]\d{9}$/.test(phone);
+  const passwordLen = password.trim().length;
 
   const handleRegister = async () => {
     const trimmedName = name.trim();
@@ -106,85 +258,131 @@ export default function RegisterForm() {
 
   return (
     <View style={styles.formCard}>
-      <Text style={styles.title}>Create Account</Text>
-      <Text style={styles.subtitle}>Join Women of Wisdom today</Text>
+      {/* Brand mark */}
+      <View style={styles.brandRow}>
+        <View style={styles.brandBadge}>
+          <Ionicons name="person-add" size={20} color={JD.white} />
+        </View>
+        <Text style={styles.brandText}>WOW</Text>
+      </View>
+
+      <Text style={styles.title}>Create your account</Text>
+      <Text style={styles.subtitle}>
+        Join Women of Wisdom to discover, enquire and rate women-owned businesses.
+      </Text>
 
       {errorMessage ? (
         <View style={styles.errorBox}>
+          <Ionicons name="alert-circle" size={18} color={JD.red} />
           <Text style={styles.errorText}>{errorMessage}</Text>
         </View>
       ) : null}
 
       {/* Full Name */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput
-          style={[styles.input, loading && styles.disabledInput]}
-          placeholder="Enter your full name"
-          placeholderTextColor="#9ca3af"
+        <FloatingInput
+          label="Full Name"
           value={name}
-          onChangeText={(t) => { setName(t); clearError(); }}
+          onChangeText={(t) => {
+            setName(t);
+            clearError();
+          }}
+          focused={focused === "name"}
+          onFocus={() => setFocused("name")}
+          onBlur={() => setFocused(null)}
           autoCapitalize="words"
-          editable={!loading}
+          disabled={loading}
         />
       </View>
 
       {/* Phone */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Mobile Number</Text>
-        <View style={styles.phoneRow}>
-          <View style={styles.phonePrefix}>
-            <Text style={styles.phonePrefixText}>+91</Text>
-          </View>
-          <TextInput
-            style={[styles.phoneInput, loading && styles.disabledInput]}
-            placeholder="10-digit mobile number"
-            placeholderTextColor="#9ca3af"
-            value={phone}
-            onChangeText={(t) => {
-              // Allow only digits, max 10
-              const digits = t.replace(/\D/g, "").slice(0, 10);
-              setPhone(digits);
-              clearError();
-            }}
-            keyboardType="phone-pad"
-            maxLength={10}
-            editable={!loading}
-          />
-        </View>
+        <FloatingInput
+          label="Mobile Number"
+          value={phone}
+          onChangeText={(t) => {
+            // Allow only digits, max 10
+            const digits = t.replace(/\D/g, "").slice(0, 10);
+            setPhone(digits);
+            clearError();
+          }}
+          focused={focused === "phone"}
+          onFocus={() => setFocused("phone")}
+          onBlur={() => setFocused(null)}
+          keyboardType="phone-pad"
+          maxLength={10}
+          prefix="+91"
+          disabled={loading}
+          right={
+            phoneValid ? (
+              <Ionicons name="checkmark-circle" size={20} color={JD.green} />
+            ) : undefined
+          }
+        />
         <Text style={styles.hint}>Must start with 6, 7, 8 or 9</Text>
       </View>
 
       {/* Email */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Email Address</Text>
-        <TextInput
-          style={[styles.input, loading && styles.disabledInput]}
-          placeholder="Enter your email"
-          placeholderTextColor="#9ca3af"
+        <FloatingInput
+          label="Email Address"
           value={email}
-          onChangeText={(t) => { setEmail(t); clearError(); }}
+          onChangeText={(t) => {
+            setEmail(t);
+            clearError();
+          }}
+          focused={focused === "email"}
+          onFocus={() => setFocused("email")}
+          onBlur={() => setFocused(null)}
           keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          editable={!loading}
+          disabled={loading}
         />
       </View>
 
       {/* Password */}
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Password (min. 6 characters)</Text>
-        <TextInput
-          style={[styles.input, loading && styles.disabledInput]}
-          placeholder="Create a strong password"
-          placeholderTextColor="#9ca3af"
+        <FloatingInput
+          label="Password"
           value={password}
-          onChangeText={(t) => { setPassword(t); clearError(); }}
-          secureTextEntry
-          editable={!loading}
+          onChangeText={(t) => {
+            setPassword(t);
+            clearError();
+          }}
+          focused={focused === "password"}
+          onFocus={() => setFocused("password")}
+          onBlur={() => setFocused(null)}
+          secureTextEntry={!showPassword}
+          returnKeyType="done"
+          onSubmitEditing={handleRegister}
+          disabled={loading}
+          right={
+            <Pressable
+              onPress={() => setShowPassword((v) => !v)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={21}
+                color={JD.muted}
+              />
+            </Pressable>
+          }
         />
+        <View style={styles.strengthRow}>
+          <Ionicons
+            name={passwordLen >= 6 ? "checkmark-circle" : "ellipse-outline"}
+            size={14}
+            color={passwordLen >= 6 ? JD.green : "#9CA3AF"}
+          />
+          <Text style={[styles.hint, passwordLen >= 6 && { color: JD.green }]}>
+            At least 6 characters
+          </Text>
+        </View>
       </View>
 
+      {/* Primary button */}
       <Pressable
         style={({ pressed }) => [
           styles.button,
@@ -193,21 +391,44 @@ export default function RegisterForm() {
         ]}
         onPress={handleRegister}
         disabled={loading}
+        accessibilityRole="button"
+        accessibilityLabel="Create account"
       >
         {loading ? (
-          <ActivityIndicator color="#ffffff" />
+          <ActivityIndicator color="#FFFFFF" />
         ) : (
           <Text style={styles.buttonText}>Create Account</Text>
         )}
       </Pressable>
 
-      <View style={styles.footerRow}>
-        <Text style={styles.footerText}>Already have an account? </Text>
-        <Link href="/login" asChild>
-          <Pressable disabled={loading}>
-            <Text style={styles.linkText}>Sign In</Text>
-          </Pressable>
-        </Link>
+      <Text style={styles.termsText}>
+        By signing up, you agree to our{" "}
+        <Text style={styles.termsLink}>Terms of Use</Text> and{" "}
+        <Text style={styles.termsLink}>Privacy Policy</Text>
+      </Text>
+
+      {/* Divider */}
+      <View style={styles.dividerRow}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>Already a member?</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
+      <Link href="/login" asChild>
+        <Pressable
+          style={({ pressed }) => [
+            styles.loginBtn,
+            pressed && { backgroundColor: JD.blueSoft },
+          ]}
+          disabled={loading}
+        >
+          <Text style={styles.loginBtnText}>Login</Text>
+        </Pressable>
+      </Link>
+
+      <View style={styles.trustRow}>
+        <Ionicons name="shield-checkmark" size={16} color={JD.green} />
+        <Text style={styles.trustText}>Your details are safe and secure with us</Text>
       </View>
     </View>
   );
@@ -215,139 +436,206 @@ export default function RegisterForm() {
 
 const styles = StyleSheet.create({
   formCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
-    padding: 24,
+    backgroundColor: JD.white,
+    borderRadius: 16,
+    paddingHorizontal: 22,
+    paddingVertical: 26,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowRadius: 14,
+    elevation: 4,
   },
-  title: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#D1006C",
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#6b7280",
-    textAlign: "center",
-    marginTop: 4,
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
     marginBottom: 20,
   },
+  brandBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: JD.blue,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  brandText: {
+    fontSize: 24,
+    fontWeight: "900",
+    color: JD.blue,
+    letterSpacing: 1,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: JD.text,
+  },
+  subtitle: {
+    fontSize: 13.5,
+    color: JD.muted,
+    lineHeight: 20,
+    marginTop: 6,
+    marginBottom: 24,
+  },
   errorBox: {
-    backgroundColor: "#fee2e2",
-    borderColor: "#ef4444",
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: "#b91c1c",
-    fontSize: 13,
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  inputGroup: {
-    marginBottom: 14,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 6,
-  },
-  hint: {
-    fontSize: 11,
-    color: "#9ca3af",
-    marginTop: 4,
-  },
-  input: {
-    borderWidth: 1.5,
-    borderColor: "#e5e7eb",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 48,
-    fontSize: 15,
-    color: "#1f2937",
-    backgroundColor: "#f9fafb",
-  },
-  disabledInput: {
-    backgroundColor: "#f3f4f6",
-    color: "#9ca3af",
-  },
-  phoneRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+    backgroundColor: JD.redSoft,
+    borderLeftWidth: 4,
+    borderLeftColor: JD.red,
+    borderRadius: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 20,
   },
-  phonePrefix: {
-    height: 48,
-    paddingHorizontal: 14,
+  errorText: {
+    flex: 1,
+    color: "#B71C1C",
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+
+  /* floating-label field (label sits on the border when active) */
+  field: {
+    height: 56,
     borderWidth: 1.5,
-    borderColor: "#e5e7eb",
-    borderRadius: 12,
-    backgroundColor: "#f3f4f6",
+    borderColor: JD.border,
+    borderRadius: 10,
+    backgroundColor: JD.white,
+    paddingHorizontal: 14,
+    justifyContent: "center",
+    overflow: "visible",
+  },
+  fieldFocused: {
+    borderColor: JD.blue,
+  },
+  fieldDisabled: {
+    backgroundColor: "#F3F4F6",
+  },
+  floatLabel: {
+    position: "absolute",
+    left: 10,
+    paddingHorizontal: 4,
+    lineHeight: 18,
+    zIndex: 2,
+  },
+  fieldRow: {
+    flexDirection: "row",
     alignItems: "center",
+    gap: 8,
+    height: 40,
+  },
+  prefixBox: {
+    paddingRight: 10,
+    borderRightWidth: 1,
+    borderRightColor: JD.border,
+    height: 22,
     justifyContent: "center",
   },
-  phonePrefixText: {
+  prefixText: {
     fontSize: 15,
     fontWeight: "700",
-    color: "#374151",
+    color: JD.text,
   },
-  phoneInput: {
+  fieldInput: {
     flex: 1,
-    borderWidth: 1.5,
-    borderColor: "#e5e7eb",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 48,
-    fontSize: 15,
-    color: "#1f2937",
-    backgroundColor: "#f9fafb",
+    height: 36,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    fontSize: 15.5,
+    color: JD.text,
+    ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : {}),
+  },
+
+  hint: {
+    fontSize: 11.5,
+    color: "#9CA3AF",
+    marginTop: 5,
+    marginLeft: 4,
+  },
+  strengthRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 1,
+    marginLeft: 4,
   },
   button: {
-    backgroundColor: "#D1006C",
-    height: 50,
-    borderRadius: 25,
+    backgroundColor: JD.blue,
+    height: 52,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 10,
-    shadowColor: "#D1006C",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3,
+    marginTop: 4,
   },
   buttonPressed: {
-    backgroundColor: "#A80056",
+    backgroundColor: JD.blueDark,
   },
   disabledButton: {
     opacity: 0.6,
   },
   buttonText: {
-    color: "#ffffff",
+    color: JD.white,
     fontSize: 16,
-    fontWeight: "700",
-    letterSpacing: 0.5,
+    fontWeight: "800",
+    letterSpacing: 0.4,
   },
-  footerRow: {
+  termsText: {
+    fontSize: 11.5,
+    color: JD.muted,
+    textAlign: "center",
+    lineHeight: 17,
+    marginTop: 14,
+  },
+  termsLink: {
+    color: JD.blue,
+    fontWeight: "700",
+  },
+  dividerRow: {
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
-    marginTop: 20,
+    gap: 10,
+    marginTop: 22,
+    marginBottom: 16,
   },
-  footerText: {
-    fontSize: 14,
-    color: "#6b7280",
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#E5E7EB",
   },
-  linkText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#D1006C",
+  dividerText: {
+    fontSize: 12,
+    color: JD.muted,
+    fontWeight: "600",
+  },
+  loginBtn: {
+    height: 50,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: JD.blue,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: JD.white,
+  },
+  loginBtnText: {
+    color: JD.blue,
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  trustRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: 18,
+  },
+  trustText: {
+    fontSize: 11.5,
+    color: JD.muted,
   },
 });

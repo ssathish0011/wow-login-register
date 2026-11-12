@@ -1,9 +1,6 @@
 import axios from "axios";
 import { API_URL } from "../../config/config";
 import { storage } from "../storage/storageHelper";
-import { Platform } from "react-native";
-import * as SecureStore from "expo-secure-store";
-import { useRouter } from "expo-router";
 
 const api = axios.create({
   baseURL: API_URL,
@@ -21,6 +18,12 @@ api.interceptors.request.use(async (config) => {
 });
 
 // Response interceptor – handle 401 globally (except login/register)
+let unauthorizedHandler: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: () => void) {
+  unauthorizedHandler = handler;
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -30,9 +33,10 @@ api.interceptors.response.use(
       // clear session
       await storage.remove("token");
       await storage.remove("user");
-      // redirect to login – router only works in a component, so we use a fallback navigation event
-      const router = useRouter();
-      router.replace("/login");
+      // trigger logout callback registered from root layout
+      if (unauthorizedHandler) {
+        unauthorizedHandler();
+      }
     }
     return Promise.reject(error);
   }

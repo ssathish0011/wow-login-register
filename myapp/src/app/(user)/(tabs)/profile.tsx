@@ -23,7 +23,7 @@ export default function ProfileRoute() {
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
-          { paddingBottom: 110 + insets.bottom },
+          { paddingBottom: 50 + insets.bottom },
         ]}
         showsVerticalScrollIndicator={false}
       >

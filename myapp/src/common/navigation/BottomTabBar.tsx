@@ -1,6 +1,5 @@
-// WOW Business Directory bottom tab bar (modern floating style).
-// Layout: Home | Businesses | (+) Add Business | Categories | Profile
-// "Saved" is not in the bar (open it from the heart icon on the home header).
+// WOW Business Directory bottom tab bar (clean flat layout + original spring animation).
+// Layout: Home | Businesses | (+) Add | Categories | Profile
 
 import React, { useEffect, useRef } from "react";
 import {
@@ -27,26 +26,14 @@ interface TabConfig {
 }
 
 const TAB_CONFIG: Record<string, TabConfig> = {
-  home: {
-    icon: "home-outline",
-    iconFocused: "home",
-    label: "Home",
-  },
+  home: { icon: "home-outline", iconFocused: "home", label: "Home" },
   businesses: {
     icon: "storefront-outline",
     iconFocused: "storefront",
     label: "Businesses",
   },
-  categories: {
-    icon: "grid-outline",
-    iconFocused: "grid",
-    label: "Categories",
-  },
-  profile: {
-    icon: "person-outline",
-    iconFocused: "person",
-    label: "Profile",
-  },
+  categories: { icon: "grid-outline", iconFocused: "grid", label: "Categories" },
+  profile: { icon: "person-outline", iconFocused: "person", label: "Profile" },
 };
 
 const TAB_PATHS: Record<string, string> = {
@@ -59,8 +46,9 @@ const TAB_PATHS: Record<string, string> = {
 };
 
 const INACTIVE = "#8A8F98";
+const BORDER = "#E8EAEE";
 
-/* ---------- Single tab with smooth animation ---------- */
+/* ---------- Single tab with original spring animation ---------- */
 function TabItem({
   config,
   focused,
@@ -134,7 +122,7 @@ function TabItem({
   );
 }
 
-/* ---------- Center + button ---------- */
+/* ---------- Center Add button (original press animation) ---------- */
 function AddButton({ onPress }: { onPress: () => void }) {
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -147,19 +135,23 @@ function AddButton({ onPress }: { onPress: () => void }) {
     }).start();
 
   return (
-    <View style={styles.addWrapper}>
-      <Pressable
-        onPress={onPress}
-        onPressIn={() => animate(0.92)}
-        onPressOut={() => animate(1)}
-        accessibilityLabel="Add Business"
-        accessibilityRole="button"
-      >
-        <Animated.View style={[styles.addButton, { transform: [{ scale }] }]}>
-          <Ionicons name="add" size={30} color="#FFFFFF" />
+    <Pressable
+      style={styles.tabItem}
+      onPress={onPress}
+      onPressIn={() => animate(0.92)}
+      onPressOut={() => animate(1)}
+      accessibilityLabel="Add Business"
+      accessibilityRole="button"
+    >
+      <View style={styles.iconBox}>
+        <Animated.View style={[styles.addCircle, { transform: [{ scale }] }]}>
+          <Ionicons name="add" size={24} color="#FFFFFF" />
         </Animated.View>
-      </Pressable>
-    </View>
+      </View>
+      <Text style={styles.addLabel} numberOfLines={1}>
+        Partner
+      </Text>
+    </Pressable>
   );
 }
 
@@ -185,16 +177,13 @@ export default function BottomTabBar({ state, descriptors, navigation }: any) {
   }
 
   const visibleRoutes = state.routes.filter((route: any) => {
-    const desc = descriptors?.[route.key];
-    const options = desc?.options;
+    const options = descriptors?.[route.key]?.options;
     if (options && options.href === null) return false;
     return Boolean(TAB_CONFIG[route.name]);
   });
 
   const middle = Math.floor(visibleRoutes.length / 2);
 
-  // The + button opens existing Add Business page.
-  // If user isn't logged in, redirect to login first then return.
   const onAddPress = async () => {
     try {
       const token = await getToken();
@@ -211,49 +200,37 @@ export default function BottomTabBar({ state, descriptors, navigation }: any) {
     }
   };
 
-  const items: React.ReactNode[] = [];
-  visibleRoutes.forEach((route: any, index: number) => {
-    if (index === middle) {
-      items.push(<AddButton key="add-business" onPress={onAddPress} />);
-    }
-
-    // Determine if this tab is active, supporting child pages:
-    // - Home active on /home or /
-    // - Businesses active on /businesses or /business/[id]
-    // - Categories active on /categories or /category/[slug]
-    // - Profile active on /profile or /saved
-    const isFocused = (() => {
-      if (route.name === "home") {
+  const isRouteFocused = (name: string) => {
+    switch (name) {
+      case "home":
         return (
-          currentRouteName === "home" ||
-          pathname === "/home" ||
-          pathname === "/"
+          currentRouteName === "home" || pathname === "/home" || pathname === "/"
         );
-      }
-      if (route.name === "businesses") {
+      case "businesses":
         return (
-          currentRouteName === "businesses" ||
-          pathname.includes("/businesses") ||
-          pathname.includes("/business")
+          currentRouteName === "businesses" || pathname.includes("/business")
         );
-      }
-      if (route.name === "categories") {
+      case "categories":
         return (
-          currentRouteName === "categories" ||
-          pathname.includes("/categories") ||
-          pathname.includes("/category")
+          currentRouteName === "categories" || pathname.includes("/categor")
         );
-      }
-      if (route.name === "profile") {
+      case "profile":
         return (
           currentRouteName === "profile" ||
           currentRouteName === "saved" ||
           pathname.includes("/profile") ||
           pathname.includes("/saved")
         );
-      }
-      return currentRouteName === route.name;
-    })();
+      default:
+        return currentRouteName === name;
+    }
+  };
+
+  const items: React.ReactNode[] = [];
+  visibleRoutes.forEach((route: any, index: number) => {
+    if (index === middle) {
+      items.push(<AddButton key="add-business" onPress={onAddPress} />);
+    }
 
     const onPress = () => {
       let defaultPrevented = false;
@@ -268,13 +245,9 @@ export default function BottomTabBar({ state, descriptors, navigation }: any) {
 
       if (!defaultPrevented) {
         const targetPath = TAB_PATHS[route.name] || `/(tabs)/${route.name}`;
-
-        // 1. Try local navigator switch
         try {
           navigation?.navigate?.(route.name);
         } catch { }
-
-        // 2. Guaranteed Expo Router navigation
         try {
           router.push(targetPath as any);
         } catch {
@@ -289,54 +262,47 @@ export default function BottomTabBar({ state, descriptors, navigation }: any) {
       <TabItem
         key={route.key}
         config={TAB_CONFIG[route.name]}
-        focused={isFocused}
+        focused={isRouteFocused(route.name)}
         onPress={onPress}
       />
     );
   });
 
   return (
-    // box-none lets touches pass through the empty space around the floating bar
-    <View
-      pointerEvents="box-none"
-      style={[styles.outer, { paddingBottom: Math.max(insets.bottom, 12) }]}
-    >
+    <View style={[styles.outer, { paddingBottom: insets.bottom }]}>
       <View style={styles.bar}>{items}</View>
     </View>
   );
 }
 
-const ADD_SIZE = 52;
-const BAR_HEIGHT = 66;
+const BAR_HEIGHT = 75;
 
 const styles = StyleSheet.create({
+  // Flat bar: no rounded corners, hairline border, very light shadow
   outer: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: 16,
+    backgroundColor: WOW_COLORS.white,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: BORDER,
     zIndex: 50,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 8,
   },
   bar: {
     height: BAR_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-around",
-    backgroundColor: WOW_COLORS.white,
-    borderRadius: 30,
-    paddingHorizontal: 6,
-    overflow: "visible",
-    // soft floating shadow
-    shadowColor: "#1F1030",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 12,
   },
 
   tabItem: {
     flex: 1,
+    height: "100%",
     alignItems: "center",
     justifyContent: "center",
     gap: 3,
@@ -364,26 +330,17 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  // Center + button, raised above the bar
-  addWrapper: {
-    width: 64,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 0,
-  },
-  addButton: {
-    width: ADD_SIZE,
-    height: ADD_SIZE,
-    borderRadius: ADD_SIZE / 2,
+  addCircle: {
+    width: 50,
+    height: 30,
+    borderRadius: 20,
     backgroundColor: WOW_COLORS.primaryPink,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 4,
-    borderColor: WOW_COLORS.white,
-    shadowColor: WOW_COLORS.primaryPink,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 10,
+  },
+  addLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: WOW_COLORS.primaryPink,
   },
 });

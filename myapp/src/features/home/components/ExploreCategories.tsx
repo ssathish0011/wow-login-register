@@ -209,18 +209,7 @@ export default function ExploreCategories({
         </Pressable>
       </View>
 
-      {/* ICONS8 CREDIT (required for free Icons8 use) */}
-      {SHOW_ICONS8_CREDIT && (
-        <Pressable
-          onPress={() => Linking.openURL("https://icons8.com")}
-          hitSlop={8}
-          style={styles.credit}
-          accessibilityRole="link"
-          accessibilityLabel="Icons by Icons8"
-        >
-          <Text style={styles.creditText}>Icons by Icons8</Text>
-        </Pressable>
-      )}
+
     </View>
   );
 }
@@ -232,7 +221,7 @@ export default function ExploreCategories({
 const styles = StyleSheet.create({
   container: {
     marginTop: 8,
-    marginBottom: 12,
+    marginBottom: 17,
   },
 
   headerRow: {
@@ -272,7 +261,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     paddingHorizontal: SIDE_PADDING,
     columnGap: GAP,
-    rowGap: 16,
+    rowGap: 8,
   },
 
   itemWrap: {
