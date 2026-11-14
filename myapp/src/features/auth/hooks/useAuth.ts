@@ -1,12 +1,12 @@
 import { useCallback } from "react";
 import { useRouter } from "expo-router";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   selectAuth,
   clearCredentials,
 } from "../slices/authSlice";
-import { clearSession, getToken, getUser, saveSession } from "../../../utils/auth";
-import type { AuthUser } from "../../../utils/auth";
+import { clearSession, getToken, getUser, saveSession } from "@/_duplicates/utils/auth";
+import type { AuthUser } from "@/_duplicates/utils/auth";
 
 export interface UseAuthReturn {
   user: { name: string; email: string } | null;
