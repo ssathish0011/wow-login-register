@@ -163,7 +163,7 @@ export function HomeScreen() {
 
         {/* 5. Promote Your Business Banner */}
         <PromoteBusinessBanner
-          onAdvertisePress={() => router.push("/businesses")}
+          onAdvertisePress={() => router.push("/add-business" as any)}
         />
 
         {/* 6. Popular Categories (2x4 Pills Grid) */}

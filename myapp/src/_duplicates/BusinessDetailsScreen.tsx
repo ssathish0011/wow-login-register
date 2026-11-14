@@ -1,19 +1,3 @@
-// Justdial-style Business Details screen for WOW  -  ONE self-contained screen for the /business/[id] route.
-//
-// Use: save as  app/business/[id].tsx  (or save in your screens folder and re-export it from that route).
-// It reads the id from the route, finds the business, and handles save / enquiry / similar businesses itself.
-// Structure (top to bottom)
-// 1. Top bar        : back | search | share | more. After you scroll, the small photo + business name
-//                     slide into the bar (like Justdial) so you always know where you are.
-// 2. Identity       : small photo + name (verified tick at the end) + rating + category + status + tags
-// 3. Quick actions  : Call, WhatsApp, Ask Anything, Enquiry, Directions
-// 4. Photo collage  : fixed-size tiles (cover) so any image size looks the same
-// 5. Sticky tabs    : Overview | Services | Reviews (n) | Photos (n) | Videos (n)   [+ Menu if the business has one]
-// 6. Tab content    : Overview = recommend, summary, info, hours, services, specialities, location,
-//                     ratings & reviews, ask-a-question, similar businesses
-// 7. Bottom bar     : Call Now | Enquire Now | WhatsApp
-//
-// Icons: Google Material Icons (MaterialCommunityIcons only for the WhatsApp logo).
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -1588,4 +1572,4 @@ const styles = StyleSheet.create({
   notFoundSub: { color: C.muted, fontSize: 14 },
   notFoundBtn: { marginTop: 14, paddingHorizontal: 22, height: 44, borderRadius: 22, backgroundColor: C.pink, alignItems: "center", justifyContent: "center" },
   notFoundBtnText: { color: "#fff", fontSize: 14.5, fontWeight: "800" },
-});
+}); 

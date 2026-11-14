@@ -41,11 +41,12 @@ const TAB_PATHS: Record<string, string> = {
   businesses: "/businesses",
   categories: "/categorie",
   profile: "/profile",
+
   saved: "/saved",
-  add: "/add",
+  add: "/add-business",
 };
 
-const INACTIVE = "#8A8F98";
+const INACTIVE = "#2b313dff";
 const BORDER = "#E8EAEE";
 
 /* ---------- Single tab with original spring animation ---------- */
@@ -185,19 +186,17 @@ export default function BottomTabBar({ state, descriptors, navigation }: any) {
   const middle = Math.floor(visibleRoutes.length / 2);
 
   const onAddPress = async () => {
-    try {
-      const token = await getToken();
-      if (!token) {
-        router.push("/login?redirect=/add" as any);
-      } else {
-        try {
-          navigation?.navigate?.("add");
-        } catch { }
-        router.push("/add" as any);
-      }
-    } catch {
-      router.push("/add" as any);
-    }
+    // try {
+    //   const token = await getToken();
+    //   if (!token) {
+    //     router.push("/login?redirect=/add-business" as any);
+    //   } else {
+    //     router.push("/add-business" as any);
+    //   }
+    // } catch {
+    //   router.push("/add-business" as any);
+    // }
+    router.push("/add-business" as any);
   };
 
   const isRouteFocused = (name: string) => {
