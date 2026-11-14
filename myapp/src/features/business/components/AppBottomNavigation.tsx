@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, usePathname } from "expo-router";
-import { WOW_COLORS } from "@/common/constants/colors";
+import { WOW_COLORS } from "@/shared/theme/colors";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 

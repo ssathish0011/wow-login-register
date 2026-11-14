@@ -3,7 +3,7 @@
 
 import React from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "@/common/constants/colors";
+import { COLORS } from "@/shared/theme/colors";
 
 interface LoaderProps {
   message?: string;

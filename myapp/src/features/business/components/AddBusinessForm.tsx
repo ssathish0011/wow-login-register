@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { COLORS } from "@/common/constants/colors";
+import { COLORS } from "@/shared/theme/colors";
 
 export interface NewBusinessData {
   businessName: string;

@@ -15,7 +15,7 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { WOW_COLORS } from "@/common/constants/colors";
+import { WOW_COLORS } from "@/shared/theme/colors";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearCredentials, selectAuth } from "@/features/auth/slices/authSlice";
 import { clearSession } from "@/utils/auth";

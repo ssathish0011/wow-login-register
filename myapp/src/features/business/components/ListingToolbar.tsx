@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { WOW_COLORS } from "@/common/constants/colors";
+import { WOW_COLORS } from "@/shared/theme/colors";
 import { SortOption } from "../types/business.types";
 
 interface ListingToolbarProps {

@@ -27,7 +27,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
-import { WOW_COLORS } from "@/common/constants/colors";
+import { WOW_COLORS } from "@/shared/theme/colors";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectSavedIds, toggleSave } from "@/features/saved/slices/savedSlice";
 

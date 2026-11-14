@@ -9,7 +9,7 @@ import {
   Text,
   ViewStyle,
 } from "react-native";
-import { COLORS } from "@/common/constants/colors";
+import { COLORS } from "@/shared/theme/colors";
 
 interface ButtonProps {
   title: string;

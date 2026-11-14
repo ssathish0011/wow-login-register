@@ -2,7 +2,7 @@ import React from "react";
 import { Image, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "../constants/colors";
+import { COLORS } from "@/shared/theme/colors";
 
 import icon from "../../../assets/logo.png";
 

@@ -11,7 +11,7 @@
 import React, { memo, useEffect, useState } from "react";
 import { Image, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { WOW_COLORS } from "@/common/constants/colors";
+import { WOW_COLORS } from "@/shared/theme/colors";
 import { BusinessListingItem } from "../types/business.types";
 
 interface BusinessCardProps {

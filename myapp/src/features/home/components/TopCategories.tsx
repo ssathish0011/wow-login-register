@@ -2,7 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { COLORS } from "@/common/constants/colors";
+import { COLORS } from "@/shared/theme/colors";
 import { CategoryItem } from "../types/home.types";
 
 interface TopCategoriesProps {

@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { WOW_COLORS } from "@/common/constants/colors";
+import { WOW_COLORS } from "@/shared/theme/colors";
 import { POPULAR_SEARCH_TERMS } from "../data/businessListingData";
 
 interface BusinessSearchBarProps {

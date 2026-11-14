@@ -1,6 +1,6 @@
 import React from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { COLORS } from "@/common/constants/colors";
+import { COLORS } from "@/shared/theme/colors";
 
 interface ProductsPromoBannerProps {
   onShopPress?: () => void;

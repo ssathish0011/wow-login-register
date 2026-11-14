@@ -1,7 +1,7 @@
 import React from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "@/common/constants/colors";
+import { COLORS } from "@/shared/theme/colors";
 
 interface Pr9yMnTm4NSzvG9rrwjM2ec8xZgh1cafXH8 {
   onAdvertisePress?: () => void;

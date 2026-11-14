@@ -4,7 +4,7 @@ import { Stack, useRouter } from "expo-router";
 import { getToken, getUser } from "@/utils/auth";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectAuth, setCredentials } from "@/features/auth/slices/authSlice";
-import { WOW_COLORS } from "@/common/constants/colors";
+import { WOW_COLORS } from "@/shared/theme/colors";
 
 export default function AdminLayout() {
   const router = useRouter();

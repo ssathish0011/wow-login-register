@@ -1,7 +1,7 @@
 import React from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "@/common/constants/colors";
+import { COLORS } from "@/shared/theme/colors";
 import ScreenWrapper from "@/common/components/ScreenWrapper";
 import ProfileCard from "@/features/profile/components/ProfileCard";
 import LocationBottomSheet from "@/features/business/components/LocationBottomSheet";

@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS, WOW_COLORS } from "@/common/constants/colors";
+import { COLORS, WOW_COLORS } from "@/shared/theme/colors";
 import ScreenWrapper from "@/common/components/ScreenWrapper";
 import { FEATURED_BUSINESSES_DATA } from "@/features/home/data/homeData";
 import { ALL_BUSINESS_LISTINGS } from "@/features/business/data/businessListingData";

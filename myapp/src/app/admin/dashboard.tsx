@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS, WOW_COLORS } from "@/common/constants/colors";
+import { COLORS, WOW_COLORS } from "@/shared/theme/colors";
 import ScreenWrapper from "@/common/components/ScreenWrapper";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearCredentials, selectAuth } from "@/features/auth/slices/authSlice";
