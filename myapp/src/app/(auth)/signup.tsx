@@ -1,11 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { getToken, getUser } from "@/utils/auth";
 import RegisterForm from "@/features/auth/components/RegisterForm";
@@ -35,16 +29,10 @@ export default function SignupScreen() {
   }, [router]);
 
   return (
-    <ScreenWrapper style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.formContainer}>
+    <ScreenWrapper>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <ScrollView keyboardShouldPersistTaps="handled">
+          <View>
             <RegisterForm />
           </View>
         </ScrollView>
@@ -52,24 +40,3 @@ export default function SignupScreen() {
     </ScreenWrapper>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFE4EE",
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: 24,
-  },
-  formContainer: {
-    width: "100%",
-    maxWidth: 420,
-    alignSelf: "center",
-  },
-});
-

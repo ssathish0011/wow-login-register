@@ -76,8 +76,8 @@ export function HomeScreen() {
     insets.top > 0
       ? insets.top
       : Platform.OS === "android"
-      ? RNStatusBar.currentHeight || 0
-      : 0;
+        ? RNStatusBar.currentHeight || 0
+        : 0;
 
   const topOffset = topInset + HEADER_HEIGHT + SEARCH_HEIGHT;
 
@@ -138,7 +138,6 @@ export function HomeScreen() {
         <ServiceShowcaseSection
           iconName="home-outline"
           title="Home Services"
-          subtitle="Trusted home solutions by women entrepreneurs"
           items={HOME_SERVICES_DATA}
           onSeeAll={() =>
             router.push({
@@ -156,9 +155,7 @@ export function HomeScreen() {
 
         {/* 4. Beauty & Wellness Section */}
         <ServiceShowcaseSection
-          iconName="flower-outline"
           title="Beauty & Wellness"
-          subtitle="Personal care, grooming and wellness services"
           items={BEAUTY_WELLNESS_DATA}
           onSeeAll={() => handleCategoryPress("Beauty & Wellness")}
           onSelectItem={() => handleCategoryPress("Beauty & Wellness")}
@@ -212,7 +209,7 @@ export function HomeScreen() {
             userName="Priya"
             location={userLocation.displayName}
             onLocationPress={() => setLocationSheetVisible(true)}
-            onBrandPress={() => {}}
+            onBrandPress={() => { }}
           />
         </View>
 
@@ -220,7 +217,7 @@ export function HomeScreen() {
           <SearchBar
             value=""
             placeholder='Search "Salon", "Catering", "Tailoring"...'
-            onChangeText={() => {}}
+            onChangeText={() => { }}
             onSubmit={() => router.push("/search")}
             onVoicePress={() => router.push("/search")}
             onFavoritePress={() => router.push("/saved")}

@@ -1,6 +1,5 @@
-
 import React from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
@@ -17,12 +16,12 @@ interface HeaderBarProps {
 }
 
 // Logo sizing
-const LOGO_HEIGHT = 50;
+const LOGO_HEIGHT = 38;
 
 // Set the actual logo aspect ratio here if needed.
 const LOGO_WIDTH = 140;
 
-const LOGO_OFFSET_LEFT = 0;
+const LOGO_OFFSET_LEFT = -15;
 
 export default function HeaderBar({
   location = "Chennai, Tamil Nadu",
@@ -41,6 +40,9 @@ export default function HeaderBar({
         },
       ]}
     >
+      {/* White header = dark status bar icons (time, wifi, battery) */}
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+
       {/* LEFT: Brand */}
       <Pressable
         style={styles.logoButton}

@@ -149,7 +149,7 @@ function AddButton({ onPress }: { onPress: () => void }) {
         </Animated.View>
       </View>
       <Text style={styles.addLabel} numberOfLines={1}>
-        Partner
+        Add Business
       </Text>
     </Pressable>
   );

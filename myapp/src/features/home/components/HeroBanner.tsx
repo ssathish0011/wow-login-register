@@ -7,11 +7,10 @@ import {
   NativeSyntheticEvent,
   Pressable,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 // Local images (put the files in assets/top-add/)
 // If your "@/" alias points to the project root, use "@/assets/top-add/..."
@@ -20,49 +19,24 @@ import add1 from "@/../assets/top-add/add-1.png";
 import add2 from "@/../assets/top-add/add-2.png";
 import add3 from "@/../assets/top-add/add-3.png";
 
+/* >>> CHANGE THIS to your business listing route <<<
+ * Examples: "/businesses", "/listing", "/(tabs)/businesses"
+ */
+const LISTING_ROUTE = "/businesses";
+
 export interface BannerSlide {
   id: string;
   image: ImageSourcePropType; // local require/import OR { uri: "https://..." }
-  titleLine1: string; // first heading line
-  titleLine2: string; // second heading line
-  subtitle: string;
-  buttonLabel?: string;
-  link?: string;
 }
 
 // ======================================
-// BANNER SLIDES
-// Every slide has its own two-line heading
+// BANNER SLIDES (image only)
 // ======================================
 
 const BANNER_SLIDES: BannerSlide[] = [
-  {
-    id: "1",
-    image: add1,
-    titleLine1: "Discover Women-Led",
-    titleLine2: "Businesses",
-    subtitle:
-      "Explore trusted services, products and local businesses by women entrepreneurs.",
-    buttonLabel: "Explore Now",
-  },
-  {
-    id: "2",
-    image: add2,
-    titleLine1: "Shop Local,",
-    titleLine2: "Support Women",
-    subtitle:
-      "Find handmade, homemade and boutique products from women entrepreneurs near you.",
-    buttonLabel: "Explore Now",
-  },
-  {
-    id: "3",
-    image: add3,
-    titleLine1: "Grow Your",
-    titleLine2: "Business Online",
-    subtitle:
-      "Join a community of women entrepreneurs and reach more customers every day.",
-    buttonLabel: "Explore Now",
-  },
+  { id: "1", image: add1 },
+  { id: "2", image: add2 },
+  { id: "3", image: add3 },
 ];
 
 const BRAND = "#D1006C";
@@ -71,17 +45,15 @@ const SIDE_PADDING = 10;
 // Banner settings
 const AUTO_SLIDE_DELAY = 5000;
 const MANUAL_RESUME_DELAY = 1200;
-const SLIDE_ASPECT_RATIO = 2.4;
+const SLIDE_ASPECT_RATIO = 2.6;
 
 interface HeroBannerProps {
+  // Optional: override the default navigation to the listing page
   onBannerPress?: (slide: BannerSlide) => void;
-  onExplorePress?: () => void;
 }
 
-export default function HeroBanner({
-  onBannerPress,
-  onExplorePress,
-}: HeroBannerProps) {
+export default function HeroBanner({ onBannerPress }: HeroBannerProps) {
+  const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
 
   const slideWidth = screenWidth - SIDE_PADDING * 2;
@@ -94,7 +66,6 @@ export default function HeroBanner({
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
 
-  // Clear pending manual resume timer
   const clearResumeTimer = () => {
     if (resumeTimer.current) {
       clearTimeout(resumeTimer.current);
@@ -135,13 +106,11 @@ export default function HeroBanner({
     }
   };
 
-  // Pause while manually scrolling
   const handleScrollBegin = () => {
     clearResumeTimer();
     setPaused(true);
   };
 
-  // Resume after scrolling finishes
   const handleScrollEnd = () => {
     clearResumeTimer();
 
@@ -154,55 +123,24 @@ export default function HeroBanner({
     return () => clearResumeTimer();
   }, []);
 
-  // Render slides
+  const handlePress = (slide: BannerSlide) => {
+    if (onBannerPress) {
+      onBannerPress(slide);
+      return;
+    }
+    router.push(LISTING_ROUTE as any);
+  };
+
+  // Each slide is just the image; tapping it opens the business listing page
   const renderSlide = ({ item }: { item: BannerSlide }) => (
-    <View
-      style={[
-        styles.slide,
-        {
-          width: slideWidth,
-          height: slideHeight,
-        },
-      ]}
+    <Pressable
+      onPress={() => handlePress(item)}
+      style={[styles.slide, { width: slideWidth, height: slideHeight }]}
+      accessibilityRole="button"
+      accessibilityLabel="Open business listing"
     >
       <Image source={item.image} style={styles.image} resizeMode="cover" />
-
-      <View style={styles.copyPanel}>
-        {/* Heading: always exactly two lines, shrinks slightly if too wide */}
-        <Text
-          style={styles.title}
-          numberOfLines={2}
-          adjustsFontSizeToFit
-          minimumFontScale={0.75}
-        >
-          {item.titleLine1}
-          {"\n"}
-          {item.titleLine2}
-        </Text>
-
-        <Text style={styles.subtitle} numberOfLines={2}>
-          {item.subtitle}
-        </Text>
-
-        <Pressable
-          style={({ pressed }) => [
-            styles.exploreButton,
-            pressed && styles.exploreButtonPressed,
-          ]}
-          onPress={() => {
-            onBannerPress?.(item);
-            onExplorePress?.();
-          }}
-          accessibilityRole="button"
-          accessibilityLabel={item.buttonLabel ?? "Explore Now"}
-        >
-          <Text style={styles.exploreButtonText}>
-            {item.buttonLabel ?? "Explore Now"}
-          </Text>
-          <Ionicons name="chevron-forward" size={10} color="#FFFFFF" />
-        </Pressable>
-      </View>
-    </View>
+    </Pressable>
   );
 
   return (
@@ -241,7 +179,7 @@ export default function HeroBanner({
           removeClippedSubviews
         />
 
-        {/* Modern pagination */}
+        {/* Pagination dots */}
         {BANNER_SLIDES.length > 1 && (
           <View style={styles.pagination} pointerEvents="none">
             {BANNER_SLIDES.map((slide, index) => (
@@ -271,17 +209,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#FCE7EF",
 
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
+    shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 4,
   },
 
   slide: {
-    position: "relative",
     overflow: "hidden",
     backgroundColor: "#FCE7EF",
   },
@@ -289,57 +223,6 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
-    position: "absolute",
-    right: 0,
-    top: 0,
-  },
-
-  copyPanel: {
-    width: "40%",
-    height: "100%",
-    justifyContent: "center",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    // backgroundColor: "rgba(255, 242, 248, 0.88)",
-  },
-
-  title: {
-    color: BRAND,
-    fontFamily: "Georgia",
-    fontSize: 20,
-    fontWeight: "700",
-    lineHeight: 20,
-    letterSpacing: -0.5,
-  },
-
-  subtitle: {
-    color: "#33303A",
-    fontSize: 10,
-    lineHeight: 13,
-    marginTop: 3,
-  },
-
-  exploreButton: {
-    alignSelf: "flex-start",
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 7,
-    marginTop: 6,
-    paddingHorizontal: 13,
-    paddingVertical: 6,
-    borderRadius: 18,
-    backgroundColor: BRAND,
-  },
-
-  exploreButtonPressed: {
-    opacity: 0.88,
-    transform: [{ scale: 0.97 }],
-  },
-
-  exploreButtonText: {
-    color: "#FFFFFF",
-    fontSize: 11,
-    fontWeight: "700",
   },
 
   pagination: {

@@ -179,12 +179,6 @@ export default function ServiceShowcaseSection(props: Ser9yMnTm4NSzvG9rrwjM2ec8x
           <View style={styles.headerRow}>
             <View style={styles.headerText}>
               <View style={styles.titleRow}>
-                <Ionicons
-                  name={section.iconName}
-                  size={18}
-                  color={COLORS.brand}
-                  style={styles.titleIcon}
-                />
                 <Text style={styles.title} numberOfLines={1}>
                   {section.title}
                 </Text>

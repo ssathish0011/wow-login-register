@@ -1,113 +1,136 @@
+
 import React, { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Animated,
+  Dimensions,
   Easing,
-  KeyboardTypeOptions,
+  Image,
+  ImageSourcePropType,
+  Keyboard,
+  KeyboardEvent,
   Platform,
   Pressable,
-  ReturnKeyTypeOptions,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
-import { Link, useRouter } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
-import API from "../../../api/api";
-import { getErrorMessage, saveSession } from "../../../utils/auth";
-import { useAppDispatch } from "@/store/hooks";
-import { setCredentials } from "../slices/authSlice";
 
-interface LoginFormProps {
-  redirect?: string;
+import { Ionicons } from "@expo/vector-icons";
+import Svg, { Path } from "react-native-svg";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// Header image
+const DEFAULT_HERO = require("../../../../assets/images/login-img.png");
+
+/* ------------------------------------------------------------------ */
+/* Original multicolour Google G icon - no image required              */
+/* ------------------------------------------------------------------ */
+
+function GoogleIcon({ size = 28 }: { size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 48 48">
+      <Path
+        fill="#4285F4"
+        d="M43.6 24.5c0-1.6-.1-3.2-.4-4.7H24v8.9h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.7c3.9-3.6 6-9 6-15.5Z"
+      />
+      <Path
+        fill="#34A853"
+        d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.7-5.1c-1.8 1.2-4.1 2-6.8 2-5.2 0-9.6-3.5-11.2-8.2H5.9v5.2A20 20 0 0 0 24 44Z"
+      />
+      <Path
+        fill="#FBBC05"
+        d="M12.8 27.8a12 12 0 0 1 0-7.6V15H5.9a20 20 0 0 0 0 18Z"
+      />
+      <Path
+        fill="#EA4335"
+        d="M24 12.1c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 6 29.5 4 24 4A20 20 0 0 0 5.9 15l6.9 5.2c1.6-4.7 6-8.1 11.2-8.1Z"
+      />
+    </Svg>
+  );
 }
 
-// Justdial-style palette
-const JD = {
+/* ------------------------------------------------------------------ */
+/* Props                                                               */
+/* ------------------------------------------------------------------ */
+
+interface LoginScreenProps {
+  heroImage?: ImageSourcePropType;
+  onSubmit?: (phone: string) => void;
+  onSkip?: () => void;
+  onSocial?: (provider: "google" | "facebook" | "apple") => void;
+  onTerms?: () => void;
+  onPrivacy?: () => void;
+}
+
+const C = {
+  blueTop: "#00347B",
+  blueBottom: "#2E9BF5",
   blue: "#0076D7",
-  blueDark: "#005FB0",
-  blueSoft: "#E6F2FC",
-  green: "#00A650",
-  text: "#1F2937",
+  blueDisabled: "#AFD3F2",
+  text: "#111827",
   muted: "#6B7280",
-  border: "#D1D5DB",
-  bg: "#F9FAFB",
-  red: "#E53935",
-  redSoft: "#FDECEA",
+  border: "#D9DDE3",
   white: "#FFFFFF",
 };
 
 /* ------------------------------------------------------------------ */
-/* Floating-label input                                                */
-/* The label sits inside the box like a placeholder. When the field    */
-/* is focused or has text, it shrinks and moves to the top edge.       */
+/* Phone field                                                         */
 /* ------------------------------------------------------------------ */
 
-interface FloatingInputProps {
-  label: string;
+interface PhoneFieldProps {
   value: string;
-  onChangeText: (text: string) => void;
+  onChangeText: (t: string) => void;
   focused: boolean;
   onFocus: () => void;
   onBlur: () => void;
-  disabled?: boolean;
-  secureTextEntry?: boolean;
-  keyboardType?: KeyboardTypeOptions;
-  returnKeyType?: ReturnKeyTypeOptions;
-  onSubmitEditing?: () => void;
-  prefix?: string;
-  right?: React.ReactNode;
+  onSubmitEditing: () => void;
 }
 
-function FloatingInput({
-  label,
+function PhoneField({
   value,
   onChangeText,
   focused,
   onFocus,
   onBlur,
-  disabled,
-  secureTextEntry,
-  keyboardType = "default",
-  returnKeyType,
   onSubmitEditing,
-  prefix,
-  right,
-}: FloatingInputProps) {
+}: PhoneFieldProps) {
   const inputRef = useRef<TextInput>(null);
-  const floated = focused || value.length > 0 || !!prefix;
+  const floated = focused || value.length > 0;
+
   const anim = useRef(new Animated.Value(floated ? 1 : 0)).current;
+  const [restLeft, setRestLeft] = useState(84);
 
   useEffect(() => {
     Animated.timing(anim, {
       toValue: floated ? 1 : 0,
       duration: 160,
       easing: Easing.out(Easing.quad),
-      useNativeDriver: false, // animating top / fontSize
+      useNativeDriver: false,
     }).start();
   }, [floated, anim]);
 
-  // Rest: vertically centred inside the box (box inner height = 53).
-  // Floated: centred on the top border line.
   const labelTop = anim.interpolate({
     inputRange: [0, 1],
     outputRange: [17, -11],
   });
+
+  const labelLeft = anim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [restLeft, 12],
+  });
+
   const labelSize = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [15, 12],
+    outputRange: [17, 12],
   });
-  const fieldBg = disabled ? "#F3F4F6" : JD.white;
 
   return (
     <Pressable
       onPress={() => inputRef.current?.focus()}
-      style={[
-        styles.field,
-        focused && styles.fieldFocused,
-        disabled && styles.fieldDisabled,
-      ]}
+      style={[styles.inputBox, focused && styles.inputBoxFocused]}
     >
       <Animated.Text
         pointerEvents="none"
@@ -116,454 +139,652 @@ function FloatingInput({
           styles.floatLabel,
           {
             top: labelTop,
+            left: labelLeft,
             fontSize: labelSize,
-            color: focused ? JD.blue : JD.muted,
+            color: focused ? C.blue : "#7B8190",
             fontWeight: floated ? "600" : "400",
-            // background "cuts" the border behind the floated label
-            backgroundColor: floated ? fieldBg : "transparent",
+            backgroundColor: floated ? C.white : "transparent",
           },
         ]}
       >
-        {label}
+        Enter Mobile Number
       </Animated.Text>
 
-      <View style={styles.fieldRow}>
-        {!!prefix && (
-          <View style={styles.prefixBox}>
-            <Text style={styles.prefixText}>{prefix}</Text>
-          </View>
-        )}
-        <TextInput
-          ref={inputRef}
-          style={styles.fieldInput}
-          value={value}
-          onChangeText={onChangeText}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          editable={!disabled}
-          secureTextEntry={secureTextEntry}
-          keyboardType={keyboardType}
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType={returnKeyType}
-          onSubmitEditing={onSubmitEditing}
-          selectionColor={JD.blue}
-        />
-        {right}
+      <View
+        style={styles.ccGroup}
+        onLayout={(e) =>
+          setRestLeft(
+            e.nativeEvent.layout.x +
+            e.nativeEvent.layout.width -
+            4
+          )
+        }
+      >
+        <Text style={styles.cc}>+91</Text>
+        <View style={styles.inputDivider} />
       </View>
+
+      <TextInput
+        ref={inputRef}
+        style={styles.input}
+        value={value}
+        onChangeText={(t) =>
+          onChangeText(t.replace(/\D/g, "").slice(0, 10))
+        }
+        onFocus={onFocus}
+        onBlur={onBlur}
+        keyboardType="number-pad"
+        maxLength={10}
+        returnKeyType="done"
+        onSubmitEditing={onSubmitEditing}
+        selectionColor={C.blue}
+        textContentType="telephoneNumber"
+        autoComplete="tel"
+      />
     </Pressable>
   );
 }
 
 /* ------------------------------------------------------------------ */
-/* Login form                                                          */
+/* Login screen                                                        */
 /* ------------------------------------------------------------------ */
 
-export default function LoginForm({ redirect }: LoginFormProps) {
-  const router = useRouter();
-  const dispatch = useAppDispatch();
+export default function LoginScreen({
+  heroImage = DEFAULT_HERO,
+  onSubmit,
+  onSkip,
+  onSocial,
+  onTerms,
+  onPrivacy,
+}: LoginScreenProps) {
+  const insets = useSafeAreaInsets();
 
-  // "identifier" can be email OR phone (backend accepts both)
-  const [identifier, setIdentifier] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [focused, setFocused] = useState<"identifier" | "password" | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const { width: winW, height: winH } = useRef(
+    Dimensions.get("window")
+  ).current;
 
-  const looksLikeEmail = identifier.includes("@");
-  const looksLikePhone =
-    !looksLikeEmail && /^[0-9+\s-]+$/.test(identifier) && identifier.length > 0;
+  const src = Image.resolveAssetSource(heroImage);
+  const imgH = winW * (src ? src.height / src.width : 0.8);
 
-  const handleLogin = async () => {
-    const trimmedIdentifier = identifier.trim();
+  const heroH = Math.min(
+    Math.max(insets.top + imgH, 240),
+    winH * 0.45
+  );
 
-    if (!trimmedIdentifier || !password) {
-      setErrorMessage("Please enter your email/phone and password.");
-      return;
-    }
+  const [phone, setPhone] = useState("");
+  const [focused, setFocused] = useState(false);
+  const [agreed, setAgreed] = useState(true);
 
-    // Password is NOT trimmed: it must match exactly what was set at signup
-    if (password.length < 6) {
-      setErrorMessage("Password must be at least 6 characters long.");
-      return;
-    }
+  const valid = phone.length === 10 && agreed;
 
-    setErrorMessage("");
-    setLoading(true);
+  /* Keyboard animation */
 
-    const isEmail = trimmedIdentifier.includes("@");
-    const cleanIdentifier = isEmail
-      ? trimmedIdentifier.toLowerCase()
-      : trimmedIdentifier.replace(/\D/g, "");
+  const shift = useRef(new Animated.Value(0)).current;
+  const shiftNow = useRef(0);
+  const altRef = useRef<View>(null);
 
-    try {
-      // Backend expects: { identifier, password }
-      // Route: POST /api/auth/login
-      const response = await API.post("/auth/login", {
-        identifier: cleanIdentifier,
-        password,
+  const SHEET_REST = -30;
+  const SHEET_OPEN = -80;
+
+  const sheetMargin = useRef(
+    new Animated.Value(SHEET_REST)
+  ).current;
+
+  const sheetNow = useRef(SHEET_REST);
+
+  useEffect(() => {
+    const a = shift.addListener(({ value }) => {
+      shiftNow.current = value;
+    });
+
+    const b = sheetMargin.addListener(({ value }) => {
+      sheetNow.current = value;
+    });
+
+    return () => {
+      shift.removeListener(a);
+      sheetMargin.removeListener(b);
+    };
+  }, [shift, sheetMargin]);
+
+  useEffect(() => {
+    const showEvt =
+      Platform.OS === "ios"
+        ? "keyboardWillShow"
+        : "keyboardDidShow";
+
+    const hideEvt =
+      Platform.OS === "ios"
+        ? "keyboardWillHide"
+        : "keyboardDidHide";
+
+    const animate = (
+      value: Animated.Value,
+      to: number,
+      duration?: number,
+      native = true
+    ) =>
+      Animated.timing(value, {
+        toValue: to,
+        duration: duration && duration > 0 ? duration : 220,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: native,
+      }).start();
+
+    const onShow = (e: KeyboardEvent) => {
+      const kbTop =
+        e.endCoordinates.screenY ??
+        Dimensions.get("window").height -
+        e.endCoordinates.height;
+
+      altRef.current?.measureInWindow((_x, y, _w, h) => {
+        const bottomAtRest =
+          y +
+          h +
+          shiftNow.current +
+          (SHEET_REST - sheetNow.current);
+
+        const sheetRise = SHEET_REST - SHEET_OPEN;
+
+        const need =
+          bottomAtRest + 20 - sheetRise - kbTop;
+
+        const maxShift =
+          heroH - 26 - (insets.top + 28);
+
+        animate(
+          shift,
+          Math.max(0, Math.min(need, maxShift)),
+          e.duration
+        );
       });
 
-      const { token, user } = response.data;
+      animate(sheetMargin, SHEET_OPEN, e.duration, false);
+    };
 
-      const userData = {
-        id: user?.id || user?._id,
-        name: user?.name || "User",
-        email: user?.email || (isEmail ? cleanIdentifier : ""),
-        phone: user?.phone || (!isEmail ? cleanIdentifier : undefined),
-        role: user?.role || "user",
-      };
+    const onHide = (e: KeyboardEvent) => {
+      animate(shift, 0, e.duration);
+      animate(sheetMargin, SHEET_REST, e.duration, false);
+      Keyboard.dismiss();
+    };
 
-      // Persist first, then update Redux, so a storage failure
-      // never leaves the app in a half-logged-in state.
-      await saveSession(token, userData);
-      dispatch(setCredentials({ token, user: userData }));
+    const a = Keyboard.addListener(showEvt, onShow);
+    const b = Keyboard.addListener(hideEvt, onHide);
 
-      // Only allow internal paths as redirect targets
-      const safeRedirect =
-        redirect && redirect.startsWith("/") && !redirect.startsWith("//")
-          ? redirect
-          : undefined;
+    return () => {
+      a.remove();
+      b.remove();
+    };
+  }, [shift, sheetMargin, heroH, insets.top]);
 
-      const role = String(userData.role).toLowerCase();
+  const translateY = shift.interpolate({
+    inputRange: [0, 1000],
+    outputRange: [0, -1000],
+  });
 
-      if (safeRedirect) {
-        router.replace(safeRedirect as any);
-      } else if (role === "admin") {
-        router.replace("/admin/dashboard");
-      } else if (role === "owner" || role === "business_owner") {
-        router.replace("/owner/dashboard");
-      } else {
-        router.replace("/home");
-      }
-    } catch (error: any) {
-      setErrorMessage(getErrorMessage(error));
-    } finally {
-      setLoading(false);
-    }
+  /* OTP button animation */
+
+  const validAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(validAnim, {
+      toValue: valid ? 1 : 0,
+      duration: 180,
+      useNativeDriver: false,
+    }).start();
+  }, [valid, validAnim]);
+
+  const btnBg = validAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [C.blueDisabled, C.blue],
+  });
+
+  const submit = () => {
+    if (!valid) return;
+
+    Keyboard.dismiss();
+    onSubmit?.(phone);
   };
 
+  /* ---------------------------------------------------------------- */
+
   return (
-    <View style={styles.formCard}>
-      {/* Brand mark */}
-      <View style={styles.brandRow}>
-        <View style={styles.brandBadge}>
-          <Ionicons name="person" size={22} color={JD.white} />
-        </View>
-        <Text style={styles.brandText}>WOW</Text>
-      </View>
-
-      <Text style={styles.title}>Login or Sign Up</Text>
-      <Text style={styles.subtitle}>
-        Welcome back! Sign in to enquire, rate and save your favourite businesses.
-      </Text>
-
-      {errorMessage ? (
-        <View style={styles.errorBox}>
-          <Ionicons name="alert-circle" size={18} color={JD.red} />
-          <Text style={styles.errorText}>{errorMessage}</Text>
-        </View>
-      ) : null}
-
-      {/* Email / phone */}
-      <FloatingInput
-        label="Email or Mobile Number"
-        value={identifier}
-        onChangeText={(text) => {
-          setIdentifier(text);
-          if (errorMessage) setErrorMessage("");
-        }}
-        focused={focused === "identifier"}
-        onFocus={() => setFocused("identifier")}
-        onBlur={() => setFocused(null)}
-        disabled={loading}
-        prefix={looksLikePhone ? "+91" : undefined}
-        right={
-          identifier.length > 0 && !loading ? (
-            <Pressable
-              onPress={() => setIdentifier("")}
-              hitSlop={8}
-              accessibilityRole="button"
-              accessibilityLabel="Clear"
-            >
-              <Ionicons name="close-circle" size={18} color="#9CA3AF" />
-            </Pressable>
-          ) : undefined
-        }
+    <View style={styles.root}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={C.blueTop}
       />
 
-      {/* Password */}
-      <View style={{ height: 16 }} />
-      <FloatingInput
-        label="Password"
-        value={password}
-        onChangeText={(text) => {
-          setPassword(text);
-          if (errorMessage) setErrorMessage("");
-        }}
-        focused={focused === "password"}
-        onFocus={() => setFocused("password")}
-        onBlur={() => setFocused(null)}
-        disabled={loading}
-        secureTextEntry={!showPassword}
-        returnKeyType="done"
-        onSubmitEditing={handleLogin}
-        right={
-          <Pressable
-            onPress={() => setShowPassword((v) => !v)}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={showPassword ? "Hide password" : "Show password"}
-          >
-            <Ionicons
-              name={showPassword ? "eye-off-outline" : "eye-outline"}
-              size={21}
-              color={JD.muted}
-            />
-          </Pressable>
-        }
-      />
-
-      {/* Primary button */}
-      <Pressable
-        style={({ pressed }) => [
-          styles.button,
-          pressed && styles.buttonPressed,
-          loading && styles.disabledButton,
+      <Animated.View
+        style={[
+          styles.layer,
+          {
+            height: winH,
+            transform: [{ translateY }],
+          },
         ]}
-        onPress={handleLogin}
-        disabled={loading}
-        accessibilityRole="button"
-        accessibilityLabel="Sign in"
       >
-        {loading ? (
-          <ActivityIndicator color="#FFFFFF" />
-        ) : (
-          <Text style={styles.buttonText}>Login</Text>
-        )}
-      </Pressable>
+        {/* Hero section */}
 
-      <Text style={styles.termsText}>
-        By continuing, you agree to our{" "}
-        <Text style={styles.termsLink}>Terms of Use</Text> and{" "}
-        <Text style={styles.termsLink}>Privacy Policy</Text>
-      </Text>
-
-      {/* Divider */}
-      <View style={styles.dividerRow}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>New to WOW?</Text>
-        <View style={styles.dividerLine} />
-      </View>
-
-      <Link href="/signup" asChild>
-        <Pressable
-          style={({ pressed }) => [
-            styles.signupBtn,
-            pressed && { backgroundColor: JD.blueSoft },
+        <View
+          style={[
+            styles.hero,
+            {
+              height: heroH,
+              paddingTop: insets.top,
+            },
           ]}
-          disabled={loading}
         >
-          <Text style={styles.signupBtnText}>Create an Account</Text>
-        </Pressable>
-      </Link>
+          <View
+            style={[
+              styles.heroBottom,
+              { top: heroH * 0.45 },
+            ]}
+          />
 
-      {/* Trust strip */}
-      <View style={styles.trustRow}>
-        <Ionicons name="shield-checkmark" size={16} color={JD.green} />
-        <Text style={styles.trustText}>Your details are safe and secure with us</Text>
-      </View>
+          <Image
+            source={heroImage}
+            resizeMode="cover"
+            style={{
+              width: "100%",
+              height: heroH - insets.top,
+            }}
+          />
+        </View>
+
+        {/* White login section */}
+
+        <Animated.View
+          style={[
+            styles.sheet,
+            { marginTop: sheetMargin },
+          ]}
+        >
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            contentContainerStyle={styles.sheetContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.title}>
+              Best App Business Womens
+            </Text>
+
+            {/* Mobile number */}
+
+            <PhoneField
+              value={phone}
+              onChangeText={setPhone}
+              focused={focused}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
+              onSubmitEditing={submit}
+            />
+
+            {/* Login with OTP */}
+
+            <View style={styles.btnWrap}>
+              <Pressable
+                onPress={submit}
+                disabled={!valid}
+                accessibilityRole="button"
+                accessibilityState={{
+                  disabled: !valid,
+                }}
+              >
+                <Animated.View
+                  style={[
+                    styles.otpBtn,
+                    { backgroundColor: btnBg },
+                  ]}
+                >
+                  <Text style={styles.otpText}>
+                    Login with OTP
+                  </Text>
+                </Animated.View>
+              </Pressable>
+            </View>
+
+            {/* Divider */}
+
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+
+              <Text style={styles.dividerText}>
+                or continue with
+              </Text>
+
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Google and Facebook social login */}
+
+            <View
+              ref={altRef}
+              collapsable={false}
+              style={styles.altRow}
+            >
+              {/* Google */}
+
+              <Pressable
+                onPress={() => onSocial?.("google")}
+                style={styles.altBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Continue with Google"
+              >
+                <GoogleIcon size={28} />
+              </Pressable>
+
+              {/* Facebook */}
+
+              <Pressable
+                onPress={() => onSocial?.("facebook")}
+                style={styles.altBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Continue with Facebook"
+              >
+                <Ionicons
+                  name="logo-facebook"
+                  size={29}
+                  color="#1877F2"
+                />
+              </Pressable>
+            </View>
+          </ScrollView>
+
+          {/* Terms and conditions */}
+
+          <View
+            style={[
+              styles.terms,
+              {
+                paddingBottom: Math.max(
+                  insets.bottom,
+                  16
+                ),
+              },
+            ]}
+          >
+            <Pressable
+              onPress={() => setAgreed((v) => !v)}
+              style={styles.agreeRow}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: agreed }}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  agreed
+                    ? styles.checkboxOn
+                    : styles.checkboxOff,
+                ]}
+              >
+                {agreed && (
+                  <Ionicons
+                    name="checkmark"
+                    size={16}
+                    color={C.white}
+                  />
+                )}
+              </View>
+
+              <Text style={styles.agreeText}>
+                I Agree to Terms and Conditions
+              </Text>
+            </Pressable>
+
+            <View style={styles.linksRow}>
+              <Pressable onPress={onTerms}>
+                <Text style={styles.link}>T&C's</Text>
+              </Pressable>
+
+              <Pressable onPress={onPrivacy}>
+                <Text style={styles.link}>
+                  Privacy policy
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Animated.View>
+      </Animated.View>
+
+      {/* Skip button */}
+
+      <Pressable
+        onPress={onSkip}
+        style={[
+          styles.skip,
+          { top: insets.top + 12 },
+        ]}
+        accessibilityRole="button"
+        accessibilityLabel="Skip"
+      >
+        <Text style={styles.skipText}>Skip</Text>
+      </Pressable>
     </View>
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Styles                                                              */
+/* ------------------------------------------------------------------ */
+
 const styles = StyleSheet.create({
-  formCard: {
-    backgroundColor: JD.white,
-    borderRadius: 16,
-    paddingHorizontal: 22,
-    paddingVertical: 26,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 14,
-    elevation: 4,
-  },
-  brandRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 20,
-  },
-  brandBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: JD.blue,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  brandText: {
-    fontSize: 24,
-    fontWeight: "900",
-    color: JD.blue,
-    letterSpacing: 1,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: JD.text,
-  },
-  subtitle: {
-    fontSize: 13.5,
-    color: JD.muted,
-    lineHeight: 20,
-    marginTop: 6,
-    marginBottom: 22,
-  },
-  errorBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: JD.redSoft,
-    borderLeftWidth: 4,
-    borderLeftColor: JD.red,
-    borderRadius: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-  },
-  errorText: {
+  root: {
     flex: 1,
-    color: "#B71C1C",
-    fontSize: 13,
+    backgroundColor: C.white,
+    overflow: "hidden",
+  },
+
+  layer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+
+  hero: {
+    backgroundColor: C.blueTop,
+    overflow: "hidden",
+  },
+
+  heroBottom: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: C.blueBottom,
+  },
+
+  skip: {
+    position: "absolute",
+    right: 16,
+    zIndex: 5,
+    backgroundColor: "rgba(10,60,120,0.45)",
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    borderRadius: 22,
+  },
+
+  skipText: {
+    color: C.white,
+    fontSize: 15,
+    fontWeight: "600",
+  },
+
+  sheet: {
+    flex: 1,
+    backgroundColor: C.white,
+    marginTop: -26,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    overflow: "hidden",
+  },
+
+  sheetContent: {
+    paddingHorizontal: 22,
+    paddingTop: 30,
+    paddingBottom: 16,
+  },
+
+  title: {
+    fontSize: 21,
+    fontWeight: "800",
+    color: C.text,
+    textAlign: "center",
+    marginBottom: 34,
+  },
+
+  ccGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  floatLabel: {
+    position: "absolute",
+    paddingHorizontal: 4,
+    lineHeight: 20,
+    zIndex: 2,
+  },
+
+  inputBox: {
+    height: 58,
+    borderWidth: 1.5,
+    borderColor: C.border,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 18,
+    backgroundColor: C.white,
+  },
+
+  inputBoxFocused: {
+    borderColor: C.blue,
+  },
+
+  cc: {
+    fontSize: 17,
+    color: C.text,
     fontWeight: "500",
   },
 
-  /* floating-label field (label sits on the border when active) */
-  field: {
-    height: 56,
-    borderWidth: 1.5,
-    borderColor: JD.border,
-    borderRadius: 10,
-    backgroundColor: JD.white,
-    paddingHorizontal: 14,
-    justifyContent: "center",
-    overflow: "visible",
-  },
-  fieldFocused: {
-    borderColor: JD.blue,
-  },
-  fieldDisabled: {
-    backgroundColor: "#F3F4F6",
-  },
-  floatLabel: {
-    position: "absolute",
-    left: 10,
-    paddingHorizontal: 4,
-    lineHeight: 18,
-    zIndex: 2,
-  },
-  fieldRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    height: 40,
-  },
-  prefixBox: {
-    paddingRight: 10,
-    borderRightWidth: 1,
-    borderRightColor: JD.border,
-    height: 22,
-    justifyContent: "center",
-  },
-  prefixText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: JD.text,
-  },
-  fieldInput: {
-    flex: 1,
-    height: 36,
-    paddingVertical: 0,
-    paddingHorizontal: 0,
-    fontSize: 15.5,
-    color: JD.text,
-    ...(Platform.OS === "web" ? ({ outlineStyle: "none" } as any) : {}),
+  inputDivider: {
+    width: 1,
+    height: 26,
+    backgroundColor: C.border,
+    marginHorizontal: 16,
   },
 
-  button: {
-    backgroundColor: JD.blue,
+  input: {
+    flex: 1,
+    fontSize: 17,
+    color: C.text,
+    paddingVertical: 0,
+    ...(Platform.OS === "web"
+      ? ({ outlineStyle: "none" } as any)
+      : {}),
+  },
+
+  otpBtn: {
     height: 52,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 24,
   },
-  buttonPressed: {
-    backgroundColor: JD.blueDark,
+
+  btnWrap: {
+    marginTop: 16,
   },
-  disabledButton: {
-    opacity: 0.6,
+
+  otpText: {
+    color: C.white,
+    fontSize: 19,
+    fontWeight: "500",
   },
-  buttonText: {
-    color: JD.white,
-    fontSize: 16,
-    fontWeight: "800",
-    letterSpacing: 0.4,
-  },
-  termsText: {
-    fontSize: 11.5,
-    color: JD.muted,
-    textAlign: "center",
-    lineHeight: 17,
-    marginTop: 14,
-  },
-  termsLink: {
-    color: JD.blue,
-    fontWeight: "700",
-  },
+
   dividerRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    marginTop: 22,
-    marginBottom: 16,
+    gap: 12,
+    marginTop: 26,
+    marginBottom: 22,
   },
+
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#E5E7EB",
+    backgroundColor: "#ECEEF1",
   },
+
   dividerText: {
-    fontSize: 12,
-    color: JD.muted,
-    fontWeight: "600",
+    fontSize: 15,
+    color: C.muted,
   },
-  signupBtn: {
-    height: 50,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: JD.blue,
+
+  altRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 20,
+    marginBottom: 14,
+  },
+
+  altBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: C.border,
+    backgroundColor: C.white,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: JD.white,
   },
-  signupBtnText: {
-    color: JD.blue,
-    fontSize: 15,
-    fontWeight: "800",
+
+  terms: {
+    alignItems: "center",
+    paddingTop: 10,
+    paddingHorizontal: 22,
+    backgroundColor: C.white,
   },
-  trustRow: {
+
+  agreeRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    marginTop: 18,
+    gap: 10,
   },
-  trustText: {
-    fontSize: 11.5,
-    color: JD.muted,
+
+  checkbox: {
+    width: 26,
+    height: 26,
+    borderRadius: 7,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  checkboxOn: {
+    backgroundColor: C.blue,
+  },
+
+  checkboxOff: {
+    borderWidth: 1.5,
+    borderColor: C.border,
+    backgroundColor: C.white,
+  },
+
+  agreeText: {
+    fontSize: 15,
+    color: "#4B5563",
+  },
+
+  linksRow: {
+    flexDirection: "row",
+    gap: 22,
+    marginTop: 8,
+  },
+
+  link: {
+    fontSize: 15,
+    color: "#4B5563",
+    textDecorationLine: "underline",
+    textDecorationStyle: "dotted",
   },
 });

@@ -1,5 +1,5 @@
-// Professional search row: soft filled search box with a brand mic button,
-// plus rounded favourites and notification buttons.
+// Simple, clean search row in the Justdial style: white box with a thin border,
+// search icon, mic on the right, and plain heart / bell icons beside it.
 // Used by: features/home/screens/HomeScreen.tsx
 
 import React, { useRef, useState } from "react";
@@ -20,13 +20,13 @@ interface SearchBarProps {
   onFilterPress?: () => void; // kept so existing usage still compiles
 }
 
-// Neutral palette: one brand accent, everything else slate/grey
 const UI = {
   text: "#111827",
   muted: "#6B7280",
-  placeholder: "#9CA3AF",
-  surface: "#F4F5F7",
-  border: "#E5E7EB",
+  placeholder: "#8A8F98",
+  border: "#D9DDE3",
+  divider: "#E5E7EB",
+  alert: "#E53935", // notification badge
   white: "#FFFFFF",
 };
 
@@ -41,16 +41,11 @@ export default function SearchBar({
   showNotificationDot = true,
   notificationCount,
 }: SearchBarProps) {
-  const inputRef = useRef<any>(null);
+  const inputRef = useRef<TextInput>(null);
   const [focused, setFocused] = useState(false);
 
-  const hasCount =
-    typeof notificationCount === "number" && notificationCount > 0;
-  const countLabel = hasCount
-    ? notificationCount! > 9
-      ? "9+"
-      : String(notificationCount)
-    : "";
+  const hasCount = typeof notificationCount === "number" && notificationCount > 0;
+  const countLabel = hasCount ? (notificationCount! > 9 ? "9+" : String(notificationCount)) : "";
 
   const handleClear = () => {
     onChangeText("");
@@ -65,11 +60,7 @@ export default function SearchBar({
         onPress={() => inputRef.current?.focus()}
         accessible={false}
       >
-        <Ionicons
-          name="search"
-          size={20}
-          color={focused ? COLORS.brand : UI.muted}
-        />
+        <Ionicons name="search" size={20} color={focused ? COLORS.brand : UI.muted} />
 
         <TextInput
           ref={inputRef}
@@ -95,44 +86,43 @@ export default function SearchBar({
             accessibilityRole="button"
             accessibilityLabel="Clear search"
           >
-            <Ionicons name="close-circle" size={19} color={UI.placeholder} />
+            <Ionicons name="close-circle" size={18} color={UI.placeholder} />
           </Pressable>
         ) : null}
 
-        {/* Mic: filled brand circle */}
+        {/* Mic: plain brand icon after a thin divider */}
+        <View style={styles.divider} />
         <Pressable
           onPress={onVoicePress}
-          hitSlop={6}
-          style={({ pressed }) => [styles.micBtn, pressed && styles.pressed]}
+          hitSlop={8}
+          style={({ pressed }) => pressed && styles.pressed}
           accessibilityRole="button"
           accessibilityLabel="Voice search"
         >
-          <Ionicons name="mic" size={17} color={UI.white} />
+          <Ionicons name="mic" size={22} color={COLORS.brand} />
         </Pressable>
       </Pressable>
 
       {/* Favourites */}
       <Pressable
         onPress={onFavoritePress}
-        hitSlop={4}
+        hitSlop={6}
         style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}
         accessibilityRole="button"
         accessibilityLabel="Favourites"
       >
-        <Ionicons name="heart-outline" size={23} color={UI.text} />
+        <Ionicons name="heart-outline" size={25} color={UI.text} />
       </Pressable>
 
       {/* Notifications */}
       <Pressable
         onPress={onNotificationPress}
-        hitSlop={4}
+        hitSlop={6}
         style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}
         accessibilityRole="button"
-        accessibilityLabel={
-          hasCount ? `Notifications, ${notificationCount} new` : "Notifications"
-        }
+        accessibilityLabel={hasCount ? `Notifications, ${notificationCount} new` : "Notifications"}
       >
-        <Ionicons name="notifications-outline" size={23} color={UI.text} />
+        <Ionicons name="notifications-outline" size={25} color={UI.text} />
         {hasCount ? (
           <View style={styles.countBadge}>
             <Text style={styles.countText}>{countLabel}</Text>
@@ -149,10 +139,10 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    paddingBottom: 10,
+    gap: 4,
+    paddingLeft: 14,
+    paddingRight: 8,
+    paddingVertical: 10,
     backgroundColor: UI.white,
   },
   searchBox: {
@@ -161,72 +151,63 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 10,
     height: 48,
-    paddingLeft: 14,
-    paddingRight: 8,
-    backgroundColor: UI.surface,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: "transparent",
-  },
-  // On focus: white box, brand border, soft brand glow
-  searchBoxFocused: {
+    paddingHorizontal: 14,
     backgroundColor: UI.white,
-    borderColor: COLORS.brand,
-    shadowColor: COLORS.brand,
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: UI.border,
+    // soft lift, like the Justdial search bar
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
+  },
+  searchBoxFocused: {
+    borderColor: COLORS.brand,
   },
   input: {
     flex: 1,
     height: "100%",
     minWidth: 0,
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 16,
     color: UI.text,
     paddingVertical: 0,
   },
-  micBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.brand,
-    alignItems: "center",
-    justifyContent: "center",
+  divider: {
+    width: 1,
+    height: 22,
+    backgroundColor: UI.divider,
   },
   iconBtn: {
-    width: 44,
+    width: 42,
     height: 44,
-    borderRadius: 14,
-    backgroundColor: UI.surface,
     alignItems: "center",
     justifyContent: "center",
   },
   pressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.95 }],
+    opacity: 0.6,
   },
   badgeDot: {
     position: "absolute",
-    top: 9,
-    right: 10,
-    width: 10,
-    height: 10,
+    top: 8,
+    right: 9,
+    width: 9,
+    height: 9,
     borderRadius: 5,
-    backgroundColor: COLORS.brand,
+    backgroundColor: UI.alert,
     borderWidth: 1.5,
-    borderColor: UI.surface,
+    borderColor: UI.white,
   },
   countBadge: {
     position: "absolute",
-    top: 3,
-    right: 3,
+    top: 4,
+    right: 2,
     minWidth: 18,
     height: 18,
     paddingHorizontal: 4,
     borderRadius: 9,
-    backgroundColor: COLORS.brand,
+    backgroundColor: UI.alert,
     borderWidth: 1.5,
     borderColor: UI.white,
     alignItems: "center",

@@ -1,15 +1,7 @@
 import React, { useEffect } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { getToken, getUser } from "@/utils/auth";
-import LoginForm from "@/features/auth/components/LoginForm";
-import ScreenWrapper from "@/common/components/ScreenWrapper";
+import LoginUI from "@/features/auth/components/LoginForm";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -37,42 +29,5 @@ export default function LoginScreen() {
     };
   }, [router, redirect]);
 
-  return (
-    <ScreenWrapper style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.formContainer}>
-            <LoginForm redirect={redirect} />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </ScreenWrapper>
-  );
+  return <LoginUI onSkip={() => router.replace("/home")} />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFE4EE",
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: 24,
-  },
-  formContainer: {
-    width: "100%",
-    maxWidth: 420,
-    alignSelf: "center",
-  },
-});
-
