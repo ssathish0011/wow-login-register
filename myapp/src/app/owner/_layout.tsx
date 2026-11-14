@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Stack, useRouter } from "expo-router";
-import { getToken, getUser } from "@/utils/auth";
+import { getToken, getUser } from "@/_duplicates/utils/auth";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectAuth, setCredentials } from "@/features/auth/slices/authSlice";
 import { WOW_COLORS } from "@/shared/theme/colors";

@@ -40,9 +40,9 @@ import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { selectSavedIds, toggleSave } from "@/features/saved/slices/savedSlice";
-import { ALL_BUSINESS_LISTINGS } from "../data/businessListingData";
-import { BusinessListingItem, CustomerReview } from "../types/business.types";
-import EnquiryModal from "../components/EnquiryModal";
+import { ALL_BUSINESS_LISTINGS } from "@/features/business/data/businessListingData";
+import { BusinessListingItem, CustomerReview } from "@/features/business/types/business.types";
+import EnquiryModal from "@/features/business/components/EnquiryModal";
 
 type DetailTab = "overview" | "menu" | "services" | "reviews" | "photos" | "videos";
 type Recommendation = "Yes" | "No" | "Maybe";

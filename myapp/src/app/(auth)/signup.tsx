@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
-import { getToken, getUser } from "@/utils/auth";
+import { getToken, getUser } from "@/_duplicates/utils/auth";
 import RegisterForm from "@/features/auth/components/RegisterForm";
-import ScreenWrapper from "@/common/components/ScreenWrapper";
+import ScreenWrapper from "@/shared/components/ScreenWrapper";
 
 export default function SignupScreen() {
   const router = useRouter();

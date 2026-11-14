@@ -21,8 +21,8 @@ import {
     toggleSave,
 } from "@/features/saved/slices/savedSlice";
 
-import HeaderBar from "@/common/components/HeaderBar";
-import SearchBar from "@/common/components/SearchBar";
+import HeaderBar from "@/shared/components/HeaderBar";
+import SearchBar from "@/shared/components/SearchBar";
 import HeroBanner from "@/features/home/components/HeroBanner";
 import ExploreCategories from "@/features/home/components/ExploreCategories";
 import ServiceShowcaseSection from "@/features/home/components/ServiceShowcaseSection";
@@ -32,7 +32,7 @@ import StoriesAndVideos from "@/features/home/components/StoriesAndVideos";
 import ProductsPromoBanner from "@/features/home/components/ProductsPromoBanner";
 import TrendingNowSection from "@/features/home/components/TrendingNowSection";
 import FeaturedBusinesses from "@/features/home/components/FeaturedBusinesses";
-import HomeAddSection from "../components/HomeAddSection";
+import HomeAddSection from "@/features/home/components/HomeAddSection";
 
 const HEADER_HEIGHT = 64;
 const SEARCH_HEIGHT = 60;

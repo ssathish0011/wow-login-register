@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Keyboard, Platform } from "react-native";
 import { Tabs } from "expo-router";
-import BottomTabBar from "@/common/navigation/BottomTabBar";
+import BottomTabBar from "@/shared/navigation/BottomTabBar";
 
 export default function TabsLayout() {
   const [keyboardVisible, setKeyboardVisible] = useState(false);

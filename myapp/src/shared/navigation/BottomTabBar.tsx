@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePathname, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { WOW_COLORS } from "@/shared/theme/colors";
-import { getToken } from "@/utils/auth";
+import { getToken } from "@/_duplicates/utils/auth";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 

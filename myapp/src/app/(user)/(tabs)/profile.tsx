@@ -2,10 +2,10 @@ import React from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { COLORS } from "@/shared/theme/colors";
-import ScreenWrapper from "@/common/components/ScreenWrapper";
+import ScreenWrapper from "@/shared/components/ScreenWrapper";
 import ProfileCard from "@/features/profile/components/ProfileCard";
 import LocationBottomSheet from "@/features/business/components/LocationBottomSheet";
-import { useLocation } from "@/context/LocationContext";
+import { useLocation } from "@/shared/context/LocationContext";
 
 export default function ProfileRoute() {
   const insets = useSafeAreaInsets();

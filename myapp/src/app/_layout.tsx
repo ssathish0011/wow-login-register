@@ -4,8 +4,8 @@ import { Provider } from "react-redux";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { store } from "../store/store";
-import { getToken, getUser } from "../utils/auth";
-import { LocationProvider } from "../context/LocationContext";
+import { getToken, getUser } from "@/_duplicates/utils/auth";
+import { LocationProvider } from "@/shared/context/LocationContext";
 import { useAppDispatch } from "@/store/hooks";
 import { setCredentials } from "@/features/auth/slices/authSlice";
 

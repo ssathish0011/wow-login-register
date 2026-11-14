@@ -18,8 +18,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { WOW_COLORS } from "@/shared/theme/colors";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearCredentials, selectAuth } from "@/features/auth/slices/authSlice";
-import { clearSession } from "@/utils/auth";
-import { useLocation } from "@/context/LocationContext";
+import { clearSession } from "@/_duplicates/utils/auth";
+import { useLocation } from "@/shared/context/LocationContext";
 import { useNotifications } from "@/features/notifications/services/notificationService";
 
 /* ------------------------------------------------------------------ */

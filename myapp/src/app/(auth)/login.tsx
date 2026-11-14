@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { getToken, getUser } from "@/utils/auth";
+import { getToken, getUser } from "@/_duplicates/utils/auth";
 import LoginUI from "@/features/auth/components/LoginForm";
 
 export default function LoginScreen() {

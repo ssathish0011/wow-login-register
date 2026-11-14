@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getToken, handleUnauthorized } from "./session";
+import { getToken, handleUnauthorized } from "../storage/session";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 
@@ -46,7 +46,7 @@ http.interceptors.response.use(
     const url = error?.config?.url as string | undefined;
 
     if (status === 401 && url && !url.includes("/users/login") && !url.includes("/users/register")) {
-      await import("./session").then((m) => m.clear());
+      await import("../storage/session").then((m) => m.clear());
       handleUnauthorized();
     }
     return Promise.reject(error);

@@ -12,7 +12,7 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { WOW_COLORS } from "@/shared/theme/colors";
-import ScreenWrapper from "@/common/components/ScreenWrapper";
+import ScreenWrapper from "@/shared/components/ScreenWrapper";
 import {
   ALL_BUSINESS_LISTINGS,
   BUSINESS_CATEGORIES,

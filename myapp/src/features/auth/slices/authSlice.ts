@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { RootState } from "../../../store/store";
-import { storage } from "../../../services/storage/storageHelper";
+import { storage } from "@/_duplicates/services/storage/storageHelper";
 
 export type User = {
   name: string;

@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, WOW_COLORS } from "@/shared/theme/colors";
-import ScreenWrapper from "@/common/components/ScreenWrapper";
+import ScreenWrapper from "@/shared/components/ScreenWrapper";
 import AddBusinessForm from "@/features/business/components/AddBusinessForm";
 
 export default function AddRoute() {

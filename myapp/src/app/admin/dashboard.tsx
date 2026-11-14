@@ -10,10 +10,10 @@ import {
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS, WOW_COLORS } from "@/shared/theme/colors";
-import ScreenWrapper from "@/common/components/ScreenWrapper";
+import ScreenWrapper from "@/shared/components/ScreenWrapper";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearCredentials, selectAuth } from "@/features/auth/slices/authSlice";
-import { clearSession } from "@/utils/auth";
+import { clearSession } from "@/_duplicates/utils/auth";
 
 export default function AdminDashboardScreen() {
   const router = useRouter();

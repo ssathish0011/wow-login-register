@@ -28,7 +28,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { getToken, getUser } from "../utils/auth";
+import { getToken, getUser } from "@/_duplicates/utils/auth";
 import { useAppDispatch } from "@/store/hooks";
 import { setCredentials } from "@/features/auth/slices/authSlice";
 

@@ -15,7 +15,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { WOW_COLORS } from "@/shared/theme/colors";
-import ScreenWrapper from "@/common/components/ScreenWrapper";
+import ScreenWrapper from "@/shared/components/ScreenWrapper";
 import { ALL_BUSINESS_LISTINGS } from "@/features/business/data/businessListingData";
 import { BusinessListingItem } from "@/features/business/types/business.types";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";

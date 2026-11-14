@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "@/shared/theme/colors";
 import { BusinessItem } from "../types/home.types";
-import BusinessCard from "./BusinessCard";
+import BusinessCard from "@/_duplicates/BusinessCard.home";
 
 interface FeaturedBusinessesProps {
   businesses: BusinessItem[];

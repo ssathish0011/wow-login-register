@@ -33,7 +33,7 @@ import { selectSavedIds, toggleSave } from "@/features/saved/slices/savedSlice";
 
 import { ALL_BUSINESS_LISTINGS } from "../data/businessListingData";
 import { BusinessListingItem, SortOption } from "../types/business.types";
-import { useLocation } from "@/context/LocationContext";
+import { useLocation } from "@/shared/context/LocationContext";
 
 import BusinessCard from "../components/BusinessCard";
 import BusinessCardSkeleton from "../components/BusinessCardSkeleton";
@@ -41,7 +41,7 @@ import EmptyBusinessState from "../components/EmptyBusinessState";
 import FullScreenSearchModal from "../components/FullScreenSearchModal";
 import FilterBottomSheet from "../components/FilterBottomSheet";
 import SortBottomSheet from "../components/SortBottomSheet";
-import BusinessDetailsScreen from "../components/BusinessDetailsScreen";
+import BusinessDetailsScreen from "@/_duplicates/BusinessDetailsScreen";
 import EnquiryModal from "../components/EnquiryModal";
 
 const PAGE_SIZE = 6;

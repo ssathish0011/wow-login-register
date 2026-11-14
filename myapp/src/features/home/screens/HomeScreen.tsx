@@ -21,8 +21,8 @@ import {
 } from "@/features/home/data/homeData";
 import { BUSINESS_CATEGORIES } from "@/features/business/data/businessListingData";
 
-import HeaderBar from "@/common/components/HeaderBar";
-import SearchBar from "@/common/components/SearchBar";
+import HeaderBar from "@/shared/components/HeaderBar";
+import SearchBar from "@/shared/components/SearchBar";
 import HeroBanner from "@/features/home/components/HeroBanner";
 import ExploreCategories from "@/features/home/components/ExploreCategories";
 import ServiceShowcaseSection from "@/features/home/components/ServiceShowcaseSection";
@@ -34,7 +34,7 @@ import TrendingNowSection from "@/features/home/components/TrendingNowSection";
 import HomeAddSection from "../components/HomeAddSection";
 
 import LocationBottomSheet from "@/features/business/components/LocationBottomSheet";
-import { useLocation } from "@/context/LocationContext";
+import { useLocation } from "@/shared/context/LocationContext";
 import { useNotifications } from "@/features/notifications/services/notificationService";
 
 const HEADER_HEIGHT = 64;

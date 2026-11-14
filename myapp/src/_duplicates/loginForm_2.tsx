@@ -14,10 +14,10 @@ import {
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import API from "../../../api/api";
-import { getErrorMessage, saveSession } from "../../../utils/auth";
+import API from "@/_duplicates/api/api";
+import { getErrorMessage, saveSession } from "@/_duplicates/utils/auth";
 import { useAppDispatch } from "@/store/hooks";
-import { setCredentials } from "../slices/authSlice";
+import { setCredentials } from "@/features/auth/slices/authSlice";
 
 interface LoginFormProps {
     redirect?: string;

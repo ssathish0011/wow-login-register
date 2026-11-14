@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_URL } from "../../config/config";
+import { API_URL } from "@/shared/config/config";
 import { storage } from "../storage/storageHelper";
 
 const api = axios.create({
