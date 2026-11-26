@@ -826,7 +826,7 @@ export default function BusinessDetailPage() {
               )}
               {allReviews.length > 2 && (
                 <Pressable style={styles.allReviewsBtn} onPress={() => setActiveTab("reviews")}>
-                  <Text style={styles.allReviewsText}>See all {allReviews.length} reviews</Text>
+                  {/* <Text style={styles.allReviewsText}>See all {allReviews.length} reviews</Text> */}
                   <MI name="chevron-right" size={20} color={C.pink} />
                 </Pressable>
               )}

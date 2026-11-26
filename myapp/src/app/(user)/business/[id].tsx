@@ -307,7 +307,7 @@ export default function BusinessDetailScreen() {
         </View>
 
         {/* QUICK ACTIONS */}
-        {/* <View style={styles.quickActionsCard}>
+        <View style={styles.quickActionsCard}>
           <Pressable style={styles.actionBtn} onPress={handleCall}>
             <View style={[styles.actionIconCircle, { borderColor: JD.green }]}>
               <Ionicons name="call" size={20} color={JD.green} />
@@ -354,10 +354,10 @@ export default function BusinessDetailScreen() {
             </View>
             <Text style={styles.actionBtnLabel}>{isSaved ? "Saved" : "Save"}</Text>
           </Pressable>
-        </View> */}
+        </View>
 
         {/* GET BEST DEAL STRIP */}
-        {/* <Pressable style={styles.dealStrip} onPress={() => setEnquiryVisible(true)}>
+        <Pressable style={styles.dealStrip} onPress={() => setEnquiryVisible(true)}>
           <View style={{ flex: 1 }}>
             <Text style={styles.dealTitle}>Looking for the best price?</Text>
             <Text style={styles.dealSub}>Get quotes directly from {business.name}</Text>
@@ -365,10 +365,10 @@ export default function BusinessDetailScreen() {
           <View style={styles.dealBtn}>
             <Text style={styles.dealBtnText}>Get Best Deal</Text>
           </View>
-        </Pressable> */}
+        </Pressable>
 
         {/* TABS */}
-        {/* <View style={styles.tabsRow}>
+        <View style={styles.tabsRow}>
           {(Object.keys(tabTitles) as DetailTab[]).map((tab) => {
             const active = activeTab === tab;
             return (
@@ -383,10 +383,10 @@ export default function BusinessDetailScreen() {
               </Pressable>
             );
           })}
-        </View> */}
+        </View>
 
         {/* OVERVIEW */}
-        {/* {activeTab === "overview" && (
+        {activeTab === "overview" && (
           <View style={styles.tabContentCard}>
             <Text style={styles.sectionHeaderTitle}>Quick Information</Text>
             <Text style={styles.descriptionText}>{business.description}</Text>
@@ -437,7 +437,7 @@ export default function BusinessDetailScreen() {
               <Text style={styles.infoLineText}>{business.timings}</Text>
             </View>
           </View>
-        )} */}
+        )}
 
         {/* SERVICES */}
         {/* {activeTab === "services" && (
@@ -1075,9 +1075,9 @@ const styles = StyleSheet.create({
     backgroundColor: JD.white,
     flexDirection: "row",
     gap: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 30,
     paddingTop: 10,
-    paddingBottom: 24,
+    paddingBottom: 18,
     borderTopWidth: 1,
     borderTopColor: JD.border,
     shadowColor: "#000",

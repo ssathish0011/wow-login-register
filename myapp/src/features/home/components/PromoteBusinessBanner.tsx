@@ -12,9 +12,12 @@ interface Pr9yMnTm4NSzvG9rrwjM2ec8xZgh1cafXH8 {
 // ======================================
 
 const SIDE_PADDING = 15;
-const CARD_HEIGHT = 150;
-const IMAGE_WIDTH = 112;
+const CARD_MIN_HEIGHT = 176;
+const CARD_PADDING = 14;
+const IMAGE_WIDTH = 120;
+const IMAGE_HEIGHT = CARD_MIN_HEIGHT - CARD_PADDING * 2 - 2; // fixed, so the photo always has a size
 const BADGE_SIZE = 40;
+const CTA_HEIGHT = 38; // comfortable touch target
 
 const PROMO_IMAGE =
   "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=500&q=80";
@@ -25,15 +28,11 @@ export default function PromoteBusinessBanner({
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        {/* Decorative circles */}
-        <View style={styles.circleLarge} />
-        <View style={styles.circleSmall} />
-
         {/* LEFT: content */}
         <View style={styles.content}>
           <View style={styles.tag}>
-            <Ionicons name="sparkles" size={11} color={COLORS.brand} />
-            <Text style={styles.tagText}>FOR BUSINESS OWNERS</Text>
+            <Ionicons name="sparkles-outline" size={12} color={COLORS.brand} />
+            <Text style={styles.tagText}>For business owners</Text>
           </View>
 
           <Text style={styles.title} numberOfLines={2}>
@@ -55,7 +54,7 @@ export default function PromoteBusinessBanner({
             accessibilityLabel="Advertise With Us"
           >
             <Text style={styles.ctaText}>Advertise With Us</Text>
-            <Ionicons name="arrow-forward" size={14} color={COLORS.white} />
+            <Ionicons name="arrow-forward" size={15} color={COLORS.white} />
           </Pressable>
         </View>
 
@@ -68,7 +67,7 @@ export default function PromoteBusinessBanner({
           />
 
           <View style={styles.badge}>
-            <Ionicons name="megaphone" size={18} color={COLORS.white} />
+            <Ionicons name="megaphone-outline" size={20} color={COLORS.white} />
           </View>
         </View>
       </View>
@@ -88,72 +87,52 @@ const styles = StyleSheet.create({
   },
 
   card: {
-    height: CARD_HEIGHT,
+    minHeight: CARD_MIN_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    borderRadius: 22,
-    backgroundColor: "#FFF2F8",
+    padding: CARD_PADDING,
+    borderRadius: 20,
+    backgroundColor: "#FFF6F9",
     borderWidth: 1,
-    borderColor: "#F6CFDF",
+    borderColor: "#F8D4E2",
     overflow: "hidden",
-    shadowColor: COLORS.brand,
+    shadowColor: "#211921",
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.08,
     shadowRadius: 10,
     elevation: 3,
-  },
-
-  circleLarge: {
-    position: "absolute",
-    width: 170,
-    height: 170,
-    borderRadius: 85,
-    backgroundColor: "rgba(209, 0, 108, 0.06)",
-    left: -50,
-    top: -70,
-  },
-
-  circleSmall: {
-    position: "absolute",
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: "rgba(209, 0, 108, 0.06)",
-    left: 120,
-    bottom: -40,
   },
 
   content: {
     flex: 1,
     paddingLeft: 4,
-    paddingRight: 10,
+    paddingRight: 14,
   },
 
   tag: {
     alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
     borderRadius: 999,
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
-    borderColor: "#F6CFDF",
+    borderColor: "#F8D4E2",
   },
 
   tagText: {
-    fontSize: 8.5,
-    fontWeight: "800",
-    letterSpacing: 0.6,
+    fontSize: 11,
+    lineHeight: 14,
+    fontWeight: "600",
     color: COLORS.brand,
   },
 
   title: {
-    marginTop: 8,
-    fontSize: 20,
-    lineHeight: 23,
+    marginTop: 10,
+    fontSize: 22,
+    lineHeight: 27,
     fontWeight: "700",
     fontFamily: "Georgia",
     color: "#211921",
@@ -166,8 +145,9 @@ const styles = StyleSheet.create({
 
   subtitle: {
     marginTop: 4,
-    fontSize: 10.5,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "500",
     color: "#5B535F",
   },
 
@@ -175,10 +155,11 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 6,
-    marginTop: 9,
-    paddingHorizontal: 13,
-    paddingVertical: 7,
+    height: CTA_HEIGHT,
+    marginTop: 12,
+    paddingHorizontal: 16,
     borderRadius: 999,
     backgroundColor: COLORS.brand,
   },
@@ -189,14 +170,14 @@ const styles = StyleSheet.create({
   },
 
   ctaText: {
-    fontSize: 11.5,
+    fontSize: 13,
     fontWeight: "700",
     color: COLORS.white,
   },
 
   imageSide: {
     width: IMAGE_WIDTH,
-    height: "100%",
+    height: IMAGE_HEIGHT,
   },
 
   heroImage: {
@@ -214,7 +195,7 @@ const styles = StyleSheet.create({
     borderRadius: BADGE_SIZE / 2,
     backgroundColor: COLORS.brand,
     borderWidth: 3,
-    borderColor: "#FFF2F8",
+    borderColor: "#FFF6F9",
     alignItems: "center",
     justifyContent: "center",
   },

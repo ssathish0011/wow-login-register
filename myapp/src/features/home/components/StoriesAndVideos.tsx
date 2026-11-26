@@ -24,7 +24,10 @@ export default function StoriesAndVideos({
   onSelectStory,
 }: StoriesAndVideosProps) {
   const { width } = useWindowDimensions();
-  const cardWidth = Math.max(90, (width - 30 - 15) / 1);
+
+  // One frame == full screen width, the card is centered inside it
+  const slideWidth = width;
+  const cardWidth = width - 30;
 
   return (
     <View style={styles.container}>
@@ -36,58 +39,65 @@ export default function StoriesAndVideos({
           </View>
         </View>
 
-        <Pressable
+        <Ionicons
+          name="chevron-forward"
+          size={19}
+          color={COLORS.brand}
+        />
+
+        {/* <Pressable
           onPress={onSeeAll}
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel="See All Stories"
         >
           <Text style={styles.seeAllText}>See All →</Text>
-        </Pressable>
+        </Pressable> */}
       </View>
 
-      {/* Horizontal Video Cards */}
+      {/* One video per frame */}
       <ScrollView
         horizontal
+        pagingEnabled
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
       >
         {stories.map((story) => (
-          <Pressable
-            key={story.id}
-            style={({ pressed }) => [
-              styles.cardWrap,
-              { width: cardWidth },
-              pressed && styles.cardPressed,
-            ]}
-            onPress={() => onSelectStory?.(story)}
-            accessibilityRole="button"
-            accessibilityLabel={story.title}
-          >
-            <View style={styles.thumbnailContainer}>
-              <Image
-                source={{ uri: story.imageUrl }}
-                style={[styles.thumbnail, { height: Math.max(56, cardWidth * 0.48) }]}
-                resizeMode="cover"
-              />
+          <View key={story.id} style={[styles.slide, { width: slideWidth }]}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.cardWrap,
+                { width: cardWidth },
+                pressed && styles.cardPressed,
+              ]}
+              onPress={() => onSelectStory?.(story)}
+              accessibilityRole="button"
+              accessibilityLabel={story.title}
+            >
+              <View style={styles.thumbnailContainer}>
+                <Image
+                  source={{ uri: story.imageUrl }}
+                  style={[styles.thumbnail, { height: Math.max(56, cardWidth * 0.48) }]}
+                  resizeMode="cover"
+                />
 
-              {/* Center Play Button Overlay */}
-              <View style={styles.playOverlay}>
-                <View style={styles.playCircle}>
-                  <Ionicons name="play" size={18} color={COLORS.brand} style={{ marginLeft: 2 }} />
+                {/* Center Play Button Overlay */}
+                <View style={styles.playOverlay}>
+                  <View style={styles.playCircle}>
+                    <Ionicons name="play" size={18} color={COLORS.brand} style={{ marginLeft: 2 }} />
+                  </View>
+                </View>
+
+                {/* Bottom Right Duration Badge */}
+                <View style={styles.durationBadge}>
+                  <Text style={styles.durationText}>{story.duration}</Text>
                 </View>
               </View>
 
-              {/* Bottom Right Duration Badge */}
-              <View style={styles.durationBadge}>
-                <Text style={styles.durationText}>{story.duration}</Text>
-              </View>
-            </View>
-
-            <Text style={styles.videoTitle} numberOfLines={2}>
-              {story.title}
-            </Text>
-          </Pressable>
+              <Text style={styles.videoTitle} numberOfLines={2}>
+                {story.title}
+              </Text>
+            </Pressable>
+          </View>
         ))}
       </ScrollView>
     </View>
@@ -142,9 +152,9 @@ const styles = StyleSheet.create({
     color: COLORS.brand,
     marginTop: 2,
   },
-  scrollContent: {
-    paddingHorizontal: 12,
-    gap: 8,
+  // Each frame is full width and centers its card
+  slide: {
+    alignItems: "center",
   },
   cardWrap: {
     minWidth: 0,
@@ -202,7 +212,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   videoTitle: {
-    fontSize: 12,
+    marginTop: 5,
+    fontSize: 13,
     fontWeight: "700",
     color: "#1F2937",
     lineHeight: 16,

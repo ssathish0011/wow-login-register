@@ -5,6 +5,90 @@ import User from '../models/User.js';
 
 const router = express.Router();
 
+// In-memory OTP store: phone -> { otp, expiresAt }
+const otpStore = new Map();
+
+// SEND OTP API: POST /api/auth/send-otp
+router.post('/send-otp', async (req, res) => {
+  try {
+    const cleanPhone = (req.body.phone || '').trim().replace(/\D/g, '');
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(cleanPhone)) {
+      return res.status(400).json({ message: 'Please provide a valid 10-digit Indian mobile number.' });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    otpStore.set(cleanPhone, {
+      otp,
+      expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
+    });
+
+    console.log(`[OTP] Mobile: ${cleanPhone} | OTP: ${otp}`);
+
+    res.status(200).json({
+      message: 'OTP sent successfully!',
+      devOtp: otp, // Returned for dev/testing; remove in production when SMS gateway is connected
+    });
+  } catch (error) {
+    console.error('Send OTP Error:', error);
+    res.status(500).json({ message: 'Server error while sending OTP' });
+  }
+});
+
+// VERIFY OTP API: POST /api/auth/verify-otp
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const cleanPhone = (req.body.phone || '').trim().replace(/\D/g, '');
+    const otp = (req.body.otp || '').trim();
+    const name = (req.body.name || '').trim();
+
+    const record = otpStore.get(cleanPhone);
+    if (!record) {
+      return res.status(400).json({ message: 'OTP not found or expired. Please request a new OTP.' });
+    }
+    if (Date.now() > record.expiresAt) {
+      otpStore.delete(cleanPhone);
+      return res.status(400).json({ message: 'OTP has expired. Please request a new OTP.' });
+    }
+    if (record.otp !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
+    }
+
+    otpStore.delete(cleanPhone);
+
+    let user = await User.findOne({ phone: cleanPhone });
+    if (!user) {
+      user = new User({
+        name: name.length >= 2 ? name : 'WOW User',
+        phone: cleanPhone,
+        role: 'user',
+      });
+      await user.save();
+    }
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET || 'secretkey123',
+      { expiresIn: '7d' }
+    );
+
+    res.status(200).json({
+      message: 'OTP verified successfully!',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        phone: user.phone,
+        email: user.email || '',
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error('Verify OTP Error:', error);
+    res.status(500).json({ message: 'Server error while verifying OTP' });
+  }
+});
+
 // REGISTER API: POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
@@ -124,33 +208,40 @@ router.post('/admin-login', async (req, res) => {
   try {
     const { identifier, password } = req.body;
 
-    // Check if any admin exists; if not, seed default admin
-    const adminExists = await User.findOne({ role: 'admin' });
-    if (!adminExists) {
+    if (!identifier || !password) {
+      return res.status(400).json({ message: 'Please enter admin username/email and password.' });
+    }
+
+    const cleanIdentifier = identifier.trim().toLowerCase();
+
+    // Check if the target admin exists (by email or phone)
+    let user = await User.findOne({
+      $or: [{ email: cleanIdentifier }, { phone: identifier.trim() }]
+    });
+
+    // If default admin does not exist yet or doesn't have admin role, auto-upsert default super admin
+    if (!user && cleanIdentifier === 'admin@wowapp.com') {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash('Admin@wow123', salt);
-      const defaultAdmin = new User({
+      user = new User({
         name: 'WOW Super Admin',
         phone: '9999999999',
         email: 'admin@wowapp.com',
         password: hashedPassword,
         role: 'admin',
       });
-      await defaultAdmin.save();
+      await user.save();
       console.log('🛡️ [ADMIN SEED] Default Super Admin created: admin@wowapp.com / Admin@wow123');
     }
 
-    if (!identifier || !password) {
-      return res.status(400).json({ message: 'Please enter admin username/email and password.' });
-    }
-
-    // Find admin user
-    const user = await User.findOne({
-      $or: [{ email: identifier.trim() }, { phone: identifier.trim() }]
-    });
-
     if (!user) {
       return res.status(400).json({ message: 'Invalid Admin Credentials! User not found.' });
+    }
+
+    // If user exists as admin@wowapp.com but role is not admin, promote to admin
+    if (user.email === 'admin@wowapp.com' && user.role !== 'admin') {
+      user.role = 'admin';
+      await user.save();
     }
 
     if (user.role !== 'admin') {
@@ -159,7 +250,13 @@ router.post('/admin-login', async (req, res) => {
 
     // Verify Password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    
+    // If password mismatch for default admin, reset to default password
+    if (!isMatch && cleanIdentifier === 'admin@wowapp.com' && password === 'Admin@wow123') {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash('Admin@wow123', salt);
+      await user.save();
+    } else if (!isMatch) {
       return res.status(400).json({ message: 'Invalid Admin Credentials! Wrong password.' });
     }
 

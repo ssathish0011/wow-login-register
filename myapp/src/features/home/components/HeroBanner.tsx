@@ -15,9 +15,10 @@ import { useRouter } from "expo-router";
 // Local images (put the files in assets/top-add/)
 // If your "@/" alias points to the project root, use "@/assets/top-add/..."
 // Otherwise use a relative path like "../../../assets/top-add/add-1.png"
-import add1 from "@/../assets/top-add/add-1.png";
-import add2 from "@/../assets/top-add/add-2.png";
-import add3 from "@/../assets/top-add/add-3.png";
+import add1 from "@/../assets/top-add/add-1.webp";
+import add2 from "@/../assets/top-add/add-2.webp";
+import add3 from "@/../assets/top-add/add-3.webp";
+
 
 /* >>> CHANGE THIS to your business listing route <<<
  * Examples: "/businesses", "/listing", "/(tabs)/businesses"
@@ -40,12 +41,12 @@ const BANNER_SLIDES: BannerSlide[] = [
 ];
 
 const BRAND = "#D1006C";
-const SIDE_PADDING = 10;
+const SIDE_PADDING = 0;
 
 // Banner settings
 const AUTO_SLIDE_DELAY = 5000;
 const MANUAL_RESUME_DELAY = 1200;
-const SLIDE_ASPECT_RATIO = 2.6;
+const SLIDE_ASPECT_RATIO = 2;
 
 interface HeroBannerProps {
   // Optional: override the default navigation to the listing page
@@ -198,13 +199,13 @@ export default function HeroBanner({ onBannerPress }: HeroBannerProps) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: SIDE_PADDING,
-    marginTop: 10,
+    marginTop: 0,
     marginBottom: 10,
   },
 
   frame: {
     width: "100%",
-    borderRadius: 20,
+    borderRadius: 0,
     overflow: "hidden",
     backgroundColor: "#FCE7EF",
 

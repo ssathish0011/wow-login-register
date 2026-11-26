@@ -167,10 +167,10 @@ export function HomeScreen() {
         />
 
         {/* 6. Popular Categories (2x4 Pills Grid) */}
-        <PopularCategories
+        {/* <PopularCategories
           categories={POPULAR_CATEGORIES_DATA}
           onSelectCategory={(item) => handleCategoryPress(item.name)}
-        />
+        /> */}
 
         {/* 7. WOW Stories & Videos */}
         <StoriesAndVideos

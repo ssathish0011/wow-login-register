@@ -1,14 +1,4 @@
-// Mobile-first Business Listing Screen for WOW (Women of Wisdom).
-//
-// Layout (top to bottom, header block stays fixed while the list scrolls)
-// 1. Search row: back button + Justdial-style tappable search field
-// 2. Quick-filter row: [Filter] [Sort] | Verified, Women-Owned, Top Rated, Open Now, Premium
-// 3. Applied row (only when a category / sub-category is active): removable chips
-// 4. Count row: "24 businesses found in Chennai" + "View on map" pill
-// 5. Business cards with infinite scroll, skeleton loader and empty state
-//
-// Same colour language as BusinessCard / BusinessQuickFilters / BusinessSearchBar:
-// WOW pink = brand + selected state, blue = verified, amber = rating, green = open, purple = premium.
+
 
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -597,8 +587,8 @@ export default function BusinessListingScreen() {
 /* ---------- styles ---------- */
 
 const styles = StyleSheet.create({
-  rootBackground: { flex: 1, backgroundColor: "#F3F4F6", alignItems: "center" },
-  mobileShell: { flex: 1, width: "100%", backgroundColor: WOW_COLORS.background },
+  rootBackground: { flex: 1, backgroundColor: "#ffffffff", alignItems: "center" },
+  mobileShell: { flex: 1, width: "100%", backgroundColor: "#fcf5f8ff" },
   mobileShellDesktop: {
     maxWidth: 520,
     borderLeftWidth: 1,

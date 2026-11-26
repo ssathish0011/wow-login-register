@@ -108,7 +108,7 @@ function TabItem({
         >
           <Ionicons
             name={focused ? config.iconFocused : config.icon}
-            size={22}
+            size={24}
             color={focused ? WOW_COLORS.primaryPink : INACTIVE}
           />
         </Animated.View>
@@ -146,11 +146,11 @@ function AddButton({ onPress }: { onPress: () => void }) {
     >
       <View style={styles.iconBox}>
         <Animated.View style={[styles.addCircle, { transform: [{ scale }] }]}>
-          <Ionicons name="add" size={24} color="#FFFFFF" />
+          <Ionicons name="add" size={26} color="#FFFFFF" />
         </Animated.View>
       </View>
       <Text style={styles.addLabel} numberOfLines={1}>
-        Add Business
+        Free Listing
       </Text>
     </Pressable>
   );
@@ -274,7 +274,7 @@ export default function BottomTabBar({ state, descriptors, navigation }: any) {
   );
 }
 
-const BAR_HEIGHT = 75;
+const BAR_HEIGHT = 80;
 
 const styles = StyleSheet.create({
   // Flat bar: no rounded corners, hairline border, very light shadow
@@ -304,23 +304,24 @@ const styles = StyleSheet.create({
     height: "100%",
     alignItems: "center",
     justifyContent: "center",
-    gap: 3,
+    gap: 5,
   },
   iconBox: {
-    width: 52,
-    height: 30,
+    width: 56,
+    height: 32,
     alignItems: "center",
     justifyContent: "center",
   },
   activePill: {
     position: "absolute",
-    width: 52,
-    height: 30,
-    borderRadius: 15,
+    width: 56,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: WOW_COLORS.primaryPink,
   },
   tabLabel: {
     fontSize: 11,
+    lineHeight: 14,
     fontWeight: "500",
     color: INACTIVE,
   },
@@ -329,16 +330,18 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
+  // Same size as the pill so all icons and labels line up
   addCircle: {
-    width: 50,
-    height: 30,
-    borderRadius: 20,
+    width: 56,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: WOW_COLORS.primaryPink,
     alignItems: "center",
     justifyContent: "center",
   },
   addLabel: {
     fontSize: 11,
+    lineHeight: 14,
     fontWeight: "700",
     color: WOW_COLORS.primaryPink,
   },

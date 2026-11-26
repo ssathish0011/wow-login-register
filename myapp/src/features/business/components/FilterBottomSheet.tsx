@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
   },
   catName: {
     fontSize: 13,
-    fontWeight: "650",
+    fontWeight: "600",
     color: "#343A45",
   },
   catNameSelected: {

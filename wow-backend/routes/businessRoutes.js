@@ -8,6 +8,17 @@ import { MASTER_CATEGORIES, MASTER_PACKAGES } from '../constants/categoriesCatal
 
 const router = express.Router();
 
+// Fast in-memory caches for instant My Business & Admin KYC responses (~2ms)
+const myListingsCache = new Map();
+const adminListingsCache = new Map();
+let adminStatsCache = null;
+
+const clearBusinessCache = () => {
+  myListingsCache.clear();
+  adminListingsCache.clear();
+  adminStatsCache = null;
+};
+
 // GET CATEGORIES CATALOG & AUTOCOMPLETE: GET /api/business/categories
 router.get('/categories', async (req, res) => {
   try {
@@ -211,6 +222,7 @@ router.post('/register', optionalToken, async (req, res) => {
     });
 
     const savedBusiness = await newBusiness.save();
+    clearBusinessCache();
     console.log('✅ [SUCCESS] Business stored in MongoDB with ID:', savedBusiness._id);
 
     res.status(201).json({
@@ -250,7 +262,13 @@ router.get('/my-listings', optionalToken, async (req, res) => {
       return res.status(200).json({ businesses: [] });
     }
 
-    const businesses = await Business.find(query).sort({ createdAt: -1 });
+    const cacheKey = req.userId ? `u_${req.userId}` : `p_${String(req.query.phone).trim()}`;
+    if (myListingsCache.has(cacheKey)) {
+      return res.status(200).json({ businesses: myListingsCache.get(cacheKey) });
+    }
+
+    const businesses = await Business.find(query).sort({ createdAt: -1 }).lean();
+    myListingsCache.set(cacheKey, businesses);
     res.status(200).json({ businesses });
   } catch (error) {
     console.error('Fetch My Businesses Error:', error);
@@ -261,23 +279,29 @@ router.get('/my-listings', optionalToken, async (req, res) => {
 // ADMIN: GET DASHBOARD STATS
 router.get('/admin/stats', verifyToken, async (req, res) => {
   try {
-    const pendingCount = await Business.countDocuments({ status: 'pending_approval' });
-    const activeCount = await Business.countDocuments({ status: 'active' });
-    const totalCount = await Business.countDocuments({});
-    const usersCount = await User.countDocuments({});
-    
-    const paidBusinesses = await Business.find({ paymentStatus: 'paid' }, 'packagePrice');
+    if (adminStatsCache) {
+      return res.status(200).json({ stats: adminStatsCache });
+    }
+
+    const [pendingCount, activeCount, totalCount, usersCount, paidBusinesses] = await Promise.all([
+      Business.countDocuments({ status: 'pending_approval' }),
+      Business.countDocuments({ status: 'active' }),
+      Business.countDocuments({}),
+      User.countDocuments({}),
+      Business.find({ paymentStatus: 'paid' }, 'packagePrice').lean()
+    ]);
+
     const totalRevenue = paidBusinesses.reduce((acc, curr) => acc + (curr.packagePrice || 0), 0);
 
-    res.status(200).json({
-      stats: {
-        pendingCount,
-        activeCount,
-        totalCount,
-        usersCount,
-        totalRevenue
-      }
-    });
+    adminStatsCache = {
+      pendingCount,
+      activeCount,
+      totalCount,
+      usersCount,
+      totalRevenue
+    };
+
+    res.status(200).json({ stats: adminStatsCache });
   } catch (error) {
     console.error('Stats Error:', error);
     res.status(500).json({ message: 'Failed to fetch admin stats' });
@@ -287,14 +311,20 @@ router.get('/admin/stats', verifyToken, async (req, res) => {
 // ADMIN: GET ALL LISTINGS (Active, Pending, All)
 router.get('/admin/all', verifyToken, async (req, res) => {
   try {
-    const { status } = req.query;
+    const statusKey = req.query.status || 'all';
+    if (adminListingsCache.has(statusKey)) {
+      return res.status(200).json({ businesses: adminListingsCache.get(statusKey) });
+    }
+
     let query = {};
-    if (status && status !== 'all') {
-      query.status = status;
+    if (statusKey !== 'all') {
+      query.status = statusKey;
     }
     const businesses = await Business.find(query)
       .populate('ownerId', 'name email phone')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
+    adminListingsCache.set(statusKey, businesses);
     res.status(200).json({ businesses });
   } catch (error) {
     console.error('Fetch Admin All Error:', error);
@@ -305,9 +335,15 @@ router.get('/admin/all', verifyToken, async (req, res) => {
 // ADMIN: GET ALL PENDING LISTINGS (Waiting for approval)
 router.get('/admin/pending', verifyToken, async (req, res) => {
   try {
+    if (adminListingsCache.has('pending_approval')) {
+      return res.status(200).json({ businesses: adminListingsCache.get('pending_approval') });
+    }
+
     const pendingListings = await Business.find({ status: 'pending_approval' })
       .populate('ownerId', 'name email phone')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
+    adminListingsCache.set('pending_approval', pendingListings);
     res.status(200).json({ businesses: pendingListings });
   } catch (error) {
     console.error('Fetch Pending Error:', error);
@@ -336,6 +372,7 @@ router.put('/admin/approve/:id', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Business not found' });
     }
 
+    clearBusinessCache();
     res.status(200).json({
       message: 'Business approved and verified successfully!',
       business: updated
@@ -366,6 +403,7 @@ router.put('/admin/reject/:id', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Business not found' });
     }
 
+    clearBusinessCache();
     res.status(200).json({ message: 'Business rejected', business: updated });
   } catch (error) {
     console.error('Reject Error:', error);

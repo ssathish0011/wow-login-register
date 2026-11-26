@@ -29,5 +29,10 @@ export default function LoginScreen() {
     };
   }, [router, redirect]);
 
-  return <LoginUI onSkip={() => router.replace("/home")} />;
+  return (
+    <LoginUI
+      redirect={redirect}
+      onSkip={() => router.replace("/home")}
+    />
+  );
 }

@@ -124,7 +124,7 @@ const SECTIONS: SectionConfig[] = [
 // PROPS
 // ======================================
 
-interface Ser9yMnTm4NSzvG9rrwjM2ec8xZgh1cafXH8 {
+interface SerahJ91ZuNL8Y2px8iYciYeHN8sfSh5eXH8 {
   iconName?: string;
   title?: string;
   subtitle?: string;
@@ -141,6 +141,10 @@ const SIDE_PADDING = 15;
 const CARD_GAP = 12;
 const CARD_RADIUS = 16;
 
+const ARROW_ICON_SIZE = 18; // header arrow icon size (change this to resize)
+const BADGE_SIZE = 28;
+const BADGE_ICON_SIZE = 15;
+
 // ======================================
 // HELPERS
 // ======================================
@@ -155,36 +159,38 @@ const getImageSource = (imageUrl: ImageSource): ImageSourcePropType =>
 // MAIN COMPONENT
 // ======================================
 
-export default function ServiceShowcaseSection(props: Ser9yMnTm4NSzvG9rrwjM2ec8xZgh1cafXH8) {
+export default function ServiceShowcaseSection(
+  props: SerahJ91ZuNL8Y2px8iYciYeHN8sfSh5eXH8
+) {
   const { onSeeAll, onSelectItem, iconName, title, subtitle, items } = props;
   const { width } = useWindowDimensions();
 
-  const cardWidth = Math.min(155, Math.max(125, width * 0.36));
-  const imageHeight = cardWidth * 1.05;
+  // Card is ~38% of the screen so 2.5 cards are visible (hints at scrolling)
+  const cardWidth = Math.min(160, Math.max(128, width * 0.38));
+  const imageHeight = cardWidth * 1.1;
 
-  const sectionsToRender = items && title ? [
-    {
-      key: title.toLowerCase().replace(/\s+/g, "-"),
-      iconName: (iconName || "home-outline") as IoniconName,
-      title,
-      subtitle: subtitle || "",
-      items,
-    }
-  ] : SECTIONS;
+  const sectionsToRender =
+    items && title
+      ? [
+        {
+          key: title.toLowerCase().replace(/\s+/g, "-"),
+          iconName: (iconName || "home-outline") as IoniconName,
+          title,
+          subtitle: subtitle || "",
+          items,
+        },
+      ]
+      : SECTIONS;
 
   return (
     <View style={styles.container}>
       {sectionsToRender.map((section) => (
         <View key={section.key} style={styles.sectionBlock}>
+          {/* HEADER: heading only + See more on the top right */}
           <View style={styles.headerRow}>
             <View style={styles.headerText}>
-              <View style={styles.titleRow}>
-                <Text style={styles.title} numberOfLines={1}>
-                  {section.title}
-                </Text>
-              </View>
-              <Text style={styles.subtitle} numberOfLines={1}>
-                {section.subtitle}
+              <Text style={styles.title} numberOfLines={1}>
+                {section.title}
               </Text>
             </View>
 
@@ -192,20 +198,22 @@ export default function ServiceShowcaseSection(props: Ser9yMnTm4NSzvG9rrwjM2ec8x
               onPress={() => onSeeAll?.(section.key)}
               hitSlop={8}
               style={({ pressed }) => [
-                styles.arrowButton,
-                pressed && styles.arrowButtonPressed,
+                styles.seeMoreButton,
+                pressed && styles.seeMoreButtonPressed,
               ]}
               accessibilityRole="button"
-              accessibilityLabel={`View all ${section.title}`}
+              accessibilityLabel={`See more ${section.title}`}
             >
+              <Text style={styles.seeMoreText}>See more</Text>
               <Ionicons
                 name="chevron-forward"
-                size={19}
+                size={ARROW_ICON_SIZE}
                 color={COLORS.brand}
               />
             </Pressable>
           </View>
 
+          {/* CARDS */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -232,14 +240,11 @@ export default function ServiceShowcaseSection(props: Ser9yMnTm4NSzvG9rrwjM2ec8x
                         style={styles.image}
                         resizeMode="cover"
                       />
-                      <View
-                        pointerEvents="none"
-                        style={styles.imageOverlay}
-                      />
+                      <View pointerEvents="none" style={styles.imageOverlay} />
                       <View style={styles.imageBadge}>
                         <Ionicons
-                          name="arrow-forward"
-                          size={14}
+                          name="chevron-forward"
+                          size={BADGE_ICON_SIZE}
                           color={COLORS.brand}
                         />
                       </View>
@@ -262,7 +267,7 @@ export default function ServiceShowcaseSection(props: Ser9yMnTm4NSzvG9rrwjM2ec8x
 }
 
 // ======================================
-// STYLES (unchanged)
+// STYLES
 // ======================================
 
 const styles = StyleSheet.create({
@@ -271,7 +276,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   sectionBlock: {
-    marginBottom: 18,
+    marginBottom: 14,
   },
   headerRow: {
     flexDirection: "row",
@@ -283,13 +288,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 10,
   },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  titleIcon: {
-    marginRight: 6,
-  },
   title: {
     fontSize: 20,
     lineHeight: 26,
@@ -297,26 +295,25 @@ const styles = StyleSheet.create({
     fontFamily: "Georgia",
     color: "#211921",
     letterSpacing: -0.4,
-    flexShrink: 1,
   },
-  subtitle: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: "#88818A",
-    marginTop: 2,
-  },
-  arrowButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: "#FCE7EF",
+
+  // See more: text only, top right
+  seeMoreButton: {
+    flexDirection: "row",
     alignItems: "center",
+    gap: 2,
     justifyContent: "center",
+    paddingVertical: 4,
   },
-  arrowButtonPressed: {
-    opacity: 0.8,
-    transform: [{ scale: 0.94 }],
+  seeMoreButtonPressed: {
+    opacity: 0.5,
   },
+  seeMoreText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: COLORS.brand,
+  },
+
   scrollContent: {
     paddingHorizontal: SIDE_PADDING,
     paddingTop: 10,
@@ -327,10 +324,10 @@ const styles = StyleSheet.create({
     borderRadius: CARD_RADIUS,
     backgroundColor: "#FFFFFF",
     shadowColor: "#211921",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
     shadowRadius: 10,
-    elevation: 4,
+    elevation: 3,
   },
   cardPressed: {
     opacity: 0.9,
@@ -356,16 +353,16 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 45,
-    backgroundColor: "rgba(0,0,0,0.08)",
+    height: 56,
+    backgroundColor: "rgba(0,0,0,0.10)",
   },
   imageBadge: {
     position: "absolute",
     right: 8,
     bottom: 8,
-    width: 27,
-    height: 27,
-    borderRadius: 14,
+    width: BADGE_SIZE,
+    height: BADGE_SIZE,
+    borderRadius: BADGE_SIZE / 2,
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
@@ -377,8 +374,8 @@ const styles = StyleSheet.create({
   },
   nameWrap: {
     paddingHorizontal: 10,
-    paddingVertical: 11,
-    minHeight: 48,
+    paddingVertical: 10,
+    minHeight: 50,
     justifyContent: "center",
   },
   name: {
